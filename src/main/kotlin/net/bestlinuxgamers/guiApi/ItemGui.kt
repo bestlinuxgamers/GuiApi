@@ -23,8 +23,10 @@ abstract class ItemGui(
     private val title: String,
     private val lines: Int,
     private val plugin: JavaPlugin, //TODO eventuell nullable machen und bei null alles static
-    private val tickSpeed: Long = 20
-) : GuiComponent(ReservedSlots(lines, GUI_WIDTH)) {
+    private val tickSpeed: Long = 20,
+    static: Boolean = false,
+    removable: Boolean = false
+) : GuiComponent(ReservedSlots(lines, GUI_WIDTH), static, removable) {
 
     init {
         if (lines < 1 || lines > 6) throw IllegalArgumentException("Guis must have 1-6 lines")
@@ -100,7 +102,7 @@ abstract class ItemGui(
      * Startet den update Tick scheduler
      */
     private fun startUpdateScheduler() {
-        if (scheduler != null) return
+        if ((scheduler != null) || super.static) return
 
         scheduler = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, {
             performUpdateTick()

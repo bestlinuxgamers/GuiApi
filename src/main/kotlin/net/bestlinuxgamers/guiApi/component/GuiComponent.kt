@@ -16,7 +16,7 @@ import org.bukkit.inventory.ItemStack
  */
 abstract class GuiComponent(
     private val reservedSlots: ReservedSlots,
-    private val static: Boolean = false,
+    internal val static: Boolean = false,
     private val removable: Boolean = false //TODO
 ) {
 
