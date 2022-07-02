@@ -14,10 +14,11 @@ import org.bukkit.inventory.ItemStack
  * Beachte: [beforeRender] wird nur einmal aufgerufen!
  * @param removable Ob Items aus dem Inventar entfernbar sein sollen.
  */
+@Suppress("MemberVisibilityCanBePrivate")
 abstract class GuiComponent(
-    private val reservedSlots: ReservedSlots,
-    internal val static: Boolean = false,
-    private val removable: Boolean = false //TODO
+    val reservedSlots: ReservedSlots,
+    val static: Boolean = false,
+    val removable: Boolean = false //TODO
 ) {
 
     init {
@@ -32,14 +33,14 @@ abstract class GuiComponent(
     private var lastRender: Array<ItemStack>? = null
     private var hooked: Boolean = false
 
+    //editing
+
     /**
      * Sperrt die Instanz der Komponente für die Nutzung durch eine andere Komponente
      */
     internal fun hook() {
         hooked = true
     }
-
-    //editing
 
     /**
      * Richtet die Komponente für den ersten Rendervorgang ein.<br/>
