@@ -47,7 +47,11 @@ abstract class GuiComponent(
      */
     abstract fun setUp()
 
-    //TODO abstract fun beforeRender(frame: Long)
+    /**
+     * Wird vor jedem Rendervorgang aufgerufen.
+     * @param frame Bild, welches gerendert werden soll
+     */
+    abstract fun beforeRender(frame: Long)
 
     /**
      * Setzt eine [GuiComponent] in die Komponentenliste
@@ -110,11 +114,11 @@ abstract class GuiComponent(
      * @see render
      */
     internal fun renderNextFrame(frame: Long): Array<ItemStack> {
-        return if (static && lastRender != null) {
-            lastRender ?: render(frame)
-        } else {
-            render(frame)
+        if (static) {
+            lastRender?.let { return it }
         }
+        beforeRender(frame)
+        return render(frame)
     }
 
     /**
