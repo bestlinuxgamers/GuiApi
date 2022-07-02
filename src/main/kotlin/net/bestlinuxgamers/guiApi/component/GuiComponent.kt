@@ -30,7 +30,14 @@ abstract class GuiComponent(
 
     //render vars
     private var lastRender: Array<ItemStack>? = null
-    //TODO render hook, damit Instanz nicht doppelt verwendet wird
+    private var hooked: Boolean = false
+
+    /**
+     * Sperrt die Instanz der Komponente für die Nutzung durch eine andere Komponente
+     */
+    internal fun hook() {
+        hooked = true
+    }
 
     //editing
 
@@ -48,10 +55,10 @@ abstract class GuiComponent(
      * @param start Index in dieser Komponente, an den Index 0 der hinzuzufügenden Komponente gesetzt werden soll
      * @throws ArrayIndexOutOfBoundsException Falls die [component] nicht in den Platz dieser [GuiComponent] passt
      * @throws ComponentOverlapException Falls die [component] eine andere [GuiComponent] überlappen würde
-     * @throws ComponentRecursionException Falls eine Rekursion mit der [component] entstehen würde
+     * @throws ComponentAlreadyInUseException Falls die Instanz der Komponente bereits verwendet wird.
      */
     fun setComponent(component: GuiComponent, start: Int) {
-        if (component === this) throw ComponentRecursionException("Can't add the same component as the parent component") //TODO rekursion bei 2+ gleich großen Komponenten verhindern
+        if (!component.hooked) component.hook() else throw ComponentAlreadyInUseException()
 
         val startPosition = reservedSlots.getPosOfIndex(start)
         val componentReservedMapped: ArrayList<Int> = ArrayList()
@@ -175,14 +182,10 @@ abstract class GuiComponent(
     class ComponentOverlapException : RuntimeException()
 
     /**
-     * Dieser Fehler wird geworfen, wenn sich die Instanz einer Komponente als Kind in derselben Instanz
-     * oder einer Kindkomponente dieser befindet und so eine Rekursion entsteht.
+     * Dieser Fehler wird geworfen, wenn eine [GuiComponent] bereits verwendet wird
+     * @see hook
      */
-    class ComponentRecursionException : RuntimeException {
-        @Suppress("UNUSED")
-        constructor() : super()
-        constructor(message: String) : super(message)
-    }
+    class ComponentAlreadyInUseException : RuntimeException()
 
     companion object {
         val RENDER_FALLBACK = ItemComponent(null!!).renderNextFrame(0)[0] //TODO

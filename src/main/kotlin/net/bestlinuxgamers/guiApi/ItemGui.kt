@@ -28,6 +28,7 @@ abstract class ItemGui(
 
     init {
         if (lines < 1 || lines > 6) throw IllegalArgumentException("Guis must have 1-6 lines")
+        super.hook()
     }
 
     private var inventory: Inventory? = null
@@ -37,6 +38,7 @@ abstract class ItemGui(
     /**
      * Öffnet das Inventar für den Spieler und startet alle Animationen
      */
+    @Suppress("unused")
     fun open() {
         if (inventory != null) return
         player.openInventory(setInventory(renderNext()))
