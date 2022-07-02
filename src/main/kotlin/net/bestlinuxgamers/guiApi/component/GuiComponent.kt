@@ -33,6 +33,8 @@ abstract class GuiComponent(
     private var lastRender: Array<ItemStack>? = null
     private var hooked: Boolean = false
 
+    internal fun getLastRender() = lastRender?.clone()
+
     //editing
 
     /**

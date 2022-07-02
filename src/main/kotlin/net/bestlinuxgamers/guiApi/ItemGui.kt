@@ -2,6 +2,8 @@ package net.bestlinuxgamers.guiApi
 
 import net.bestlinuxgamers.guiApi.component.GuiComponent
 import net.bestlinuxgamers.guiApi.component.ReservedSlots
+import net.bestlinuxgamers.guiApi.extensions.updateItems
+import net.bestlinuxgamers.guiApi.extensions.writeItems
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
@@ -59,13 +61,11 @@ abstract class ItemGui(
      * Aktualisiert das Inventar. Nur Items, welche sich verändert haben, werden verändert.
      * @param items Items, welche das Inventar beinhalten soll
      */
-    private fun updateInventory(items: Array<ItemStack>) { //TODO was, wenn sich nix ändert oder generell alles static ist. - Man könnte mit super.lastRender arbeiten
+    private fun updateInventory(items: Array<ItemStack>) {
         val inventory = this.inventory ?: throw IllegalStateException("Inventory is not initialized") //TODO evtl. stop/close
-        items.forEachIndexed { index, item ->
-            if (inventory.getItem(index) != item) {
-                inventory.setItem(index, item)
-            }
-        }
+
+        inventory.updateItems(items, super.getLastRender())
+
         player.updateInventory()
     }
 
@@ -86,7 +86,7 @@ abstract class ItemGui(
     private fun createInventory(items: Array<ItemStack>): Inventory {
         val inventory = Bukkit.createInventory(player, lines * GUI_WIDTH, title)
 
-        items.forEachIndexed { index, item -> inventory.setItem(index, item) }
+        inventory.writeItems(items)
 
         return inventory
     }
