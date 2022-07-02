@@ -10,6 +10,8 @@ import org.bukkit.inventory.ItemStack
  */
 class ItemComponent(private val item: ItemStack) : GuiComponent(ReservedSlots(1, 1), true) {
     override fun setUp() {}
+    override fun beforeRender(frame: Long) {}
+
     override fun render(frame: Long): Array<ItemStack> {
         return Array(1) { item }
     }
