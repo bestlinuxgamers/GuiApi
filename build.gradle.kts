@@ -8,7 +8,7 @@ group = "net.bestlinuxgamers"
 
 val versionType: String? by project
 val versionCount: String by project
-version = "$versionCount-${versionType ?: "SNAPSHOT"}"
+version = "$versionCount-${versionType ?: "SNAPSHOT"}" //TODO add recon
 
 repositories {
     mavenCentral()

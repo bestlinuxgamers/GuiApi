@@ -1,4 +1,4 @@
 package net.bestlinuxgamers.guiApi
 
-interface Gui {
+interface Gui {//TODO Labymod integration (evtl. translator?)
 }
