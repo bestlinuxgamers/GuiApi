@@ -1,14 +1,18 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.6.20"
+    kotlin("jvm") version "1.7.0"
+    id("org.ajoberstar.reckon") version "0.16.1"
 }
 
 group = "net.bestlinuxgamers"
 
-val versionType: String? by project
-val versionCount: String by project
-version = "$versionCount-${versionType ?: "SNAPSHOT"}" //TODO add recon
+reckon {
+    stages("beta", "rc", "final")
+
+    setScopeCalc(calcScopeFromProp().or(calcScopeFromCommitMessages()))
+    setStageCalc(calcStageFromProp())
+}
 
 repositories {
     mavenCentral()
