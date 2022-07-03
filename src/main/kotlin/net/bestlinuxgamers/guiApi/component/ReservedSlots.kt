@@ -16,7 +16,7 @@ class ReservedSlots(private val reservedSlotsArr2D: Array<Array<Boolean>>) {
      * @see [translateArr1DToArr2D]
      */
     @Suppress("UNUSED")
-    constructor(width: Int, reservedSlots: Array<Boolean>) : this(translateArr1DToArr2D(width, reservedSlots))
+    constructor(width: Int, reservedSlots: Array<Boolean>) : this(translateArr1DToArr2DSquare(width, reservedSlots))
 
     val size: Int by lazy { calculateSize() }
 
@@ -95,23 +95,24 @@ class ReservedSlots(private val reservedSlotsArr2D: Array<Array<Boolean>>) {
 
         /**
          * Übersetzt einen eindimensionalen Speicher in den zweidimensionalen [ReservedSlots] Speicher
-         * mit rechteckiger Struktur
+         * @param widths Breiten der Zeilen des zweidimensionalen Speichers
+         * @param reservedSlots eindimensionaler Speicher
+         * @return zweidimensionaler Speicher
+         */
+        fun translateArr1DToArr2D(widths: Array<Int>, reservedSlots: Array<Boolean>): Array<Array<Boolean>> =
+            Array(widths.size) { index ->
+                val startIndex = widths.copyOfRange(0, index).sum()
+                reservedSlots.copyOfRange(startIndex, startIndex + widths[index])
+            }
+
+        /**
+         * [translateArr1DToArr2D] mit rechteckiger Struktur
          * @param width Breite des zweidimensionalen Speichers
          * @param reservedSlots eindimensionaler Speicher
-         * @return zweidimensionaler Speicher in rechteckiger Struktur
+         * @return zweidimensionaler Speicher mit rechteckiger Struktur
          */
-        fun translateArr1DToArr2D(width: Int, reservedSlots: Array<Boolean>): Array<Array<Boolean>> {
-            val height = width / reservedSlots.size
-            val array = Array(height) { generateReservedRow(width, reserved = false) }
-
-            for (i in 0 until height - 1) {
-                array[i] = reservedSlots.copyOfRange(
-                    i * width,
-                    ((i + 1) * width) - 1
-                ) //TODO Was, wenn output kleiner als Größe der Zeile
-            }
-            return array
-        }
+        fun translateArr1DToArr2DSquare(width: Int, reservedSlots: Array<Boolean>) =
+            translateArr1DToArr2D(Array(reservedSlots.size / width) { width }, reservedSlots)
 
         /**
          * Generiert eine Zeile eines [ReservedSlots] Speichers
