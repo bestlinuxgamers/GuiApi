@@ -3,8 +3,39 @@ package net.bestlinuxgamers.guiApi.component
 /**
  * Klasse speichert die Reservierung von Slots im zweidimensionalen Raum.
  * @param reservedSlotsArr2D Reservierte Slots (true = reserviert)
+ * @throws NoReservedSlotsException Falls der angegebene Speicher keine reservierten Slots beinhaltet
  */
-class ReservedSlots(private val reservedSlotsArr2D: Array<Array<Boolean>>) {
+class ReservedSlots(reservedSlotsArr2D: Array<Array<Boolean>>) {
+
+    private val reservedSlotsArr2D: Array<Array<Boolean>>
+
+    init {
+        //ensure every row ends with true
+        reservedSlotsArr2D.forEachIndexed { idx, it ->
+            if (it.isNotEmpty() && !it.last()) {
+                var lastTrueIdx = -1
+                it.forEachIndexed { idx2, it2 -> if (it2) lastTrueIdx = idx2 }
+                reservedSlotsArr2D[idx] = if (lastTrueIdx > -1) it.copyOfRange(0, lastTrueIdx + 1) else emptyArray()
+            }
+        }
+
+        //ensure reservedSlots doesn't start and end with an empty array
+        var startArr = 0
+        var endArr = reservedSlotsArr2D.size
+        reservedSlotsArr2D.forEachIndexed { idx, it ->
+            if (it.isNotEmpty()) {
+                endArr = idx + 1
+            } else {
+                if (startArr == idx) startArr++
+            }
+        }
+        if (startArr == endArr) throw NoReservedSlotsException()
+        this.reservedSlotsArr2D = if (startArr != 0 || endArr != reservedSlotsArr2D.size - 1) {
+            reservedSlotsArr2D.copyOfRange(startArr, endArr)
+        } else {
+            reservedSlotsArr2D
+        }
+    }
 
     /**
      * Für rechteckige Komponenten
@@ -15,46 +46,59 @@ class ReservedSlots(private val reservedSlotsArr2D: Array<Array<Boolean>>) {
     /**
      * @see [translateArr1DToArr2D]
      */
-    @Suppress("UNUSED")
+    @Suppress("unused")
     constructor(width: Int, reservedSlots: Array<Boolean>) : this(translateArr1DToArr2DSquare(width, reservedSlots))
 
-    val size: Int by lazy { calculateSize() }
+    //reservedSlots
+    val totalReserved: Int by lazy { calculateReservedSize() }
 
     /**
-     * @return Anzahl aller verfügbaren Slots
+     * @return Anzahl aller **verfügbaren** Slots
      */
-    private fun calculateSize(): Int {
-        var size = 0
-        reservedSlotsArr2D.forEach { size += it.filter { true }.size }
-        return size
-    }
+    private fun calculateReservedSize(): Int = reservedSlotsArr2D.sumOf { it.filter { it2 -> it2 }.size }
 
     /**
      * @param line Zeile (0 Index)
-     * @return die Anzahl an verfügbaren Slots in Zeile [line]
+     * @return die Anzahl an **verfügbaren** Slots in Zeile [line]
      * @throws ArrayIndexOutOfBoundsException Wenn es [line] nicht gibt
      */
     @Suppress("MemberVisibilityCanBePrivate")
-    fun getSizeOfLine(line: Int): Int = reservedSlotsArr2D[line].filter { true }.size
+    fun getReservedOfLine(line: Int): Int = reservedSlotsArr2D[line].filter { it }.size
+
+    //allSlots
+
+    private val arrSize by lazy { calculateArrSize() }
 
     /**
-     * @param index 0 Index
-     * @return [Position2D] des [index]ten verfügbaren Elements. X = row, Y = line
-     * @throws ArrayIndexOutOfBoundsException Wenn [index] zu groß ist
+     * @return Anzahl aller Slots (verfügbar und nicht verfügbar)
+     */
+    private fun calculateArrSize(): Int = reservedSlotsArr2D.sumOf { it.size }
+
+    /**
+     * @param line Zeile (0 Index)
+     * @return die Anzahl aller Slots (verfügbar und nicht verfügbar) in der Zeile [line]
+     */
+    private fun getArrSizeOfLine(line: Int): Int = reservedSlotsArr2D[line].size
+
+    /**
+     * @param index 0 Index eines **verfügbaren** Slots
+     * @return [Position2D] des [index]ten **verfügbaren** Elements. X = row, Y = line
+     * @throws ArrayIndexOutOfBoundsException Wenn [index] nicht existiert
      */
     fun getPosOfIndex(index: Int): Position2D {
-        if (index > size) throw ArrayIndexOutOfBoundsException("Can't find index $index, because size is $size")
+        if (index >= arrSize) throw ArrayIndexOutOfBoundsException("Can't find index $index, because size is $arrSize")
+        if (index < 0) throw ArrayIndexOutOfBoundsException("Index can't be negative'")
 
         var count = 0
         reservedSlotsArr2D.forEachIndexed { line, lineData ->
             lineData.forEachIndexed { row, rowData ->
                 if (rowData) {
-                    if (count == index) return Position2D(row, line)
+                    if (count == index) return Position2D(row + 1, line + 1)
                     count++
                 }
             }
         }
-        throw IllegalStateException("Internal error. Contact the developer!")
+        throw ArrayIndexOutOfBoundsException()
     }
 
     /**
@@ -65,13 +109,15 @@ class ReservedSlots(private val reservedSlotsArr2D: Array<Array<Boolean>>) {
      * (Zeile y wurde nicht gesetzt oder Zeile y hat weniger als x Spalten)
      */
     fun getIndexOfPos(position: Position2D): Int {
-        if (position.x > getSizeOfLine(position.y)) throw ArrayIndexOutOfBoundsException(
-            "Can't find ${position.x} in Line ${position.y} because size is ${getSizeOfLine(position.y)}"
+        if (position.x <= 0) throw ArrayIndexOutOfBoundsException("Row can't be negative!")
+        val targetLineSize = getArrSizeOfLine(position.y - 1)
+        if (position.x > targetLineSize) throw ArrayIndexOutOfBoundsException(
+            "Can't find ${position.x} in line ${position.y}, because size is $targetLineSize!"
         )
 
         var count: Int = position.x - 1
-        for (i in 0 until position.y) {
-            count += getSizeOfLine(i)
+        for (i in 0 until position.y - 1) {
+            count += getArrSizeOfLine(i)
         }
         return count
     }
@@ -82,6 +128,11 @@ class ReservedSlots(private val reservedSlotsArr2D: Array<Array<Boolean>>) {
      * @return Klon vom Speicher der reservierten Slots
      */
     fun getArr2D() = reservedSlotsArr2D.clone()
+
+    /**
+     * Dieser Fehler wird geworfen, wenn ein angegebener Speicher keine reservierten Slots enthält
+     */
+    class NoReservedSlotsException : IllegalArgumentException()
 
     companion object {
         /**
@@ -121,8 +172,7 @@ class ReservedSlots(private val reservedSlotsArr2D: Array<Array<Boolean>>) {
          * @return Array<Boolean> mit [width] mal [reserved] gefüllt
          */
         @Suppress("MemberVisibilityCanBePrivate")
-        fun generateReservedRow(width: Int, reserved: Boolean = true): Array<Boolean> =
-            Array(width) { reserved }
+        fun generateReservedRow(width: Int, reserved: Boolean = true): Array<Boolean> = Array(width) { reserved }
     }
 
     /**

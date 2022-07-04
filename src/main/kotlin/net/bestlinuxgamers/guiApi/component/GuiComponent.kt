@@ -25,7 +25,7 @@ abstract class GuiComponent(
         setUp() //TODO evtl. erst beim start vom rendern aufrufen
     }
 
-    private val components: Array<ComponentIndexMap?> = Array(reservedSlots.size) { null }
+    private val components: Array<ComponentIndexMap?> = Array(reservedSlots.totalReserved) { null }
     private var clickAction: (event: InventoryClickEvent, clickedComponent: Int) -> Unit =
         { _: InventoryClickEvent, _: Int -> }
 
@@ -96,7 +96,7 @@ abstract class GuiComponent(
      * @param COMPONENT Typ der gesuchten Komponente
      * @return Komponente des Typs, oder null
      */
-    inline fun <reified COMPONENT : GuiComponent> getComponent(): COMPONENT? { //TODO was, wenn mehrere Komponenten mit dem gleichen Typ
+    inline fun <reified COMPONENT : GuiComponent> getComponent(): COMPONENT? { //TODO - was, wenn mehrere Komponenten mit dem gleichen Typ
         val componentClass = COMPONENT::class
         getComponents().forEach { if (it::class == componentClass) return it as COMPONENT }
         return null
@@ -130,7 +130,7 @@ abstract class GuiComponent(
      */
     internal open fun render(frame: Long): Array<ItemStack> {
         val renderResults: MutableMap<GuiComponent, Array<ItemStack>> = mutableMapOf()
-        val output: Array<ItemStack> = Array(reservedSlots.size) { RENDER_FALLBACK }
+        val output: Array<ItemStack> = Array(reservedSlots.totalReserved) { RENDER_FALLBACK }
 
         components.forEachIndexed { index, it ->
             if (it != null) {
