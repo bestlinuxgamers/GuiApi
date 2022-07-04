@@ -1,11 +1,11 @@
 package net.bestlinuxgamers.guiApi.component
 
-import net.bestlinuxgamers.guiApi.component.essentials.ItemComponent
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemStack
 
 /**
- * Repräsentiert eine Komponente eines Minecraft Guis.<br/>
+ * Repräsentiert eine Komponente eines Minecraft Guis.
+ *
  * Die Klasse erstellt zuerst mithilfe der [setUp] Methode die Komponente.
  * Anschließend können die Komponenten gerendert [renderNextFrame] werden.
  * @param reservedSlots Fläche der Komponente
@@ -13,12 +13,14 @@ import org.bukkit.inventory.ItemStack
  * Dies wird empfohlen, wenn die Komponente keine Animationen o.ä. enthält.
  * Beachte: [beforeRender] wird nur einmal aufgerufen!
  * @param removable Ob Items aus dem Inventar entfernbar sein sollen.
+ * @param renderFallback Item, welches auf reservierte aber nicht gerenderte Slots gesetzt wird
  */
 @Suppress("MemberVisibilityCanBePrivate")
 abstract class GuiComponent(
     val reservedSlots: ReservedSlots,
     val static: Boolean = false,
-    val removable: Boolean = false //TODO
+    val removable: Boolean = false, //TODO
+    val renderFallback: ItemStack? = null
 ) {
 
     init {
@@ -30,7 +32,7 @@ abstract class GuiComponent(
         { _: InventoryClickEvent, _: Int -> }
 
     //render vars
-    private var lastRender: Array<ItemStack>? = null
+    private var lastRender: Array<ItemStack?>? = null
     private var hooked: Boolean = false
 
     internal fun getLastRender() = lastRender?.clone()
@@ -116,7 +118,7 @@ abstract class GuiComponent(
      * @param frame Anzahl des Rendervorgangs
      * @see render
      */
-    internal fun renderNextFrame(frame: Long): Array<ItemStack> {
+    internal fun renderNextFrame(frame: Long): Array<ItemStack?> {
         if (static) {
             lastRender?.let { return it }
         }
@@ -128,9 +130,9 @@ abstract class GuiComponent(
      * Rendert das nächste Bild
      * @param frame Anzahl des Rendervorgangs
      */
-    internal open fun render(frame: Long): Array<ItemStack> {
-        val renderResults: MutableMap<GuiComponent, Array<ItemStack>> = mutableMapOf()
-        val output: Array<ItemStack> = Array(reservedSlots.totalReserved) { RENDER_FALLBACK }
+    internal open fun render(frame: Long): Array<ItemStack?> {
+        val renderResults: MutableMap<GuiComponent, Array<ItemStack?>> = mutableMapOf()
+        val output: Array<ItemStack?> = Array(reservedSlots.totalReserved) { renderFallback }
 
         components.forEachIndexed { index, it ->
             if (it != null) {
@@ -194,7 +196,4 @@ abstract class GuiComponent(
      */
     class ComponentAlreadyInUseException : RuntimeException()
 
-    companion object {
-        val RENDER_FALLBACK = ItemComponent(null!!).renderNextFrame(0)[0] //TODO
-    }
 }

@@ -8,11 +8,12 @@ import org.bukkit.inventory.ItemStack
  * Ein einzelnes Item
  * @param item Daten des Items
  */
-class ItemComponent(private val item: ItemStack) : GuiComponent(ReservedSlots(1, 1), true) {
+class ItemComponent(private val item: ItemStack, removable: Boolean = false) :
+    GuiComponent(ReservedSlots(1, 1), true, removable, null) {
     override fun setUp() {}
     override fun beforeRender(frame: Long) {}
 
-    override fun render(frame: Long): Array<ItemStack> {
+    override fun render(frame: Long): Array<ItemStack?> {
         return Array(1) { item }
     }
 }

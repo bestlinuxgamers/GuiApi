@@ -19,6 +19,7 @@ import org.bukkit.scheduler.BukkitTask
  * @param lines Zeilenanzahl des GUIs
  * @param plugin Plugin, auf welches der Scheduler registriert werden soll
  * @param tickSpeed Schnelligkeit der GUI Updates in Minecraft Ticks
+ * @param background Items in Slots, auf denen keine Komponente liegt
  */
 abstract class ItemGui(
     private val player: Player,
@@ -27,8 +28,9 @@ abstract class ItemGui(
     private val plugin: JavaPlugin, //TODO eventuell nullable machen und bei null alles static
     private val tickSpeed: Long = 20,
     static: Boolean = false,
-    removable: Boolean = false
-) : GuiComponent(ReservedSlots(lines, GUI_WIDTH), static, removable) {
+    removable: Boolean = false,
+    background: ItemStack? = null
+) : GuiComponent(ReservedSlots(lines, GUI_WIDTH), static, removable, background) {
 
     init {
         if (lines < 1 || lines > 6) throw IllegalArgumentException("Guis must have 1-6 lines")
@@ -61,7 +63,7 @@ abstract class ItemGui(
      * Aktualisiert das Inventar. Nur Items, welche sich verändert haben, werden verändert.
      * @param items Items, welche das Inventar beinhalten soll
      */
-    private fun updateInventory(items: Array<ItemStack>) {
+    private fun updateInventory(items: Array<ItemStack?>) {
         val inventory = this.inventory ?: throw IllegalStateException("Inventory is not initialized") //TODO evtl. stop/close
 
         inventory.updateItems(items, super.getLastRender())
@@ -74,7 +76,7 @@ abstract class ItemGui(
      * @param items Items, welche das Inventar beinhalten soll
      * @see createInventory
      */
-    private fun setInventory(items: Array<ItemStack>): Inventory {
+    private fun setInventory(items: Array<ItemStack?>): Inventory {
         if (inventory == null) throw IllegalStateException("Inventory already set")
         return createInventory(items).also { inventory = it }
     }
@@ -83,7 +85,7 @@ abstract class ItemGui(
      * Generiert ein neues Inventar nach den Einstellungen der Instanz
      * @param items Items, welche das Inventar beinhalten soll
      */
-    private fun createInventory(items: Array<ItemStack>): Inventory {
+    private fun createInventory(items: Array<ItemStack?>): Inventory {
         val inventory = Bukkit.createInventory(player, lines * GUI_WIDTH, title)
 
         inventory.writeItems(items)
