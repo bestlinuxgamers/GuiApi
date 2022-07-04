@@ -33,18 +33,59 @@ abstract class GuiComponent(
 
     //render vars
     private var lastRender: Array<ItemStack?>? = null
-    private var hooked: Boolean = false
 
     internal fun getLastRender() = lastRender?.clone()
 
-    //editing
+    //locks
+    private var hook: GuiComponent? = null
+    private var locked = false
 
     /**
      * Sperrt die Instanz der Komponente für die Nutzung durch eine andere Komponente
+     * @param guiComponent Komponente, welche die Sperrung veranlasst
+     * @throws ComponentAlreadyInUseException Falls die Komponente bereits verwendet wird
+     * @throws ComponentRekursionException Fall eine Rekursion an Komponenten entstehen würde
+     * @see isLocked
      */
-    internal fun hook() {
-        hooked = true
+    private fun hook(guiComponent: GuiComponent) {
+        if (isLocked()) throw ComponentAlreadyInUseException()
+        if (guiComponent === this) throw ComponentRekursionException()
+        val guiComponentHook = guiComponent.hook
+        if (guiComponentHook != null) {
+            var lastComponent: GuiComponent? = guiComponentHook
+            while (lastComponent != null) {
+                if (lastComponent === this) throw ComponentRekursionException()
+                lastComponent = lastComponent.hook
+            }
+        }
+
+        hook = guiComponent
     }
+
+    /**
+     * Sperrt die Instanz der Komponente für die Nutzung durch eine andere Komponente
+     * @throws ComponentAlreadyInUseException Wenn die Komponente bereits gesperrt ist
+     * @see isLocked
+     */
+    internal fun lock() {
+        if (isLocked()) throw ComponentAlreadyInUseException()
+        locked = true
+    }
+
+    /**
+     * @return Ob die Komponente gesperrt ist
+     * @see hook
+     * @see lock
+     */
+    internal fun isLocked() = (locked || (hook != null))
+
+    /**
+     * @return Die übergeordnete Komponente
+     * @see hook
+     */
+    fun getParentComponent() = hook
+
+    //user defined methods
 
     /**
      * Richtet die Komponente für den ersten Rendervorgang ein.<br/>
@@ -58,16 +99,20 @@ abstract class GuiComponent(
      */
     abstract fun beforeRender(frame: Long)
 
+    //editing
+
     /**
      * Setzt eine [GuiComponent] in die Komponentenliste
      * @param component [GuiComponent], welche hinzugefügt werden soll
      * @param start Index in dieser Komponente, an den Index 0 der hinzuzufügenden Komponente gesetzt werden soll
      * @throws ArrayIndexOutOfBoundsException Falls die [component] nicht in den Platz dieser [GuiComponent] passt
      * @throws ComponentOverlapException Falls die [component] eine andere [GuiComponent] überlappen würde
-     * @throws ComponentAlreadyInUseException Falls die Instanz der Komponente bereits verwendet wird.
+     * @throws ComponentAlreadyInUseException Falls die Instanz der Komponente bereits verwendet wird
+     * @throws ComponentRekursionException Fall eine Rekursion an Komponenten entstehen würde
+     * @see hook
      */
     fun setComponent(component: GuiComponent, start: Int) {
-        if (!component.hooked) component.hook() else throw ComponentAlreadyInUseException()
+        component.hook(this)
 
         val startPosition = reservedSlots.getPosOfIndex(start)
         val componentReservedMapped: ArrayList<Int> = ArrayList()
@@ -185,6 +230,7 @@ abstract class GuiComponent(
      */
     data class ComponentIndexMap(val component: GuiComponent, val index: Int)
 
+    //exceptions
     /**
      * Dieser Fehler wird geworfen, wenn sich eine Komponente mit einer anderen überlappt
      */
@@ -195,5 +241,10 @@ abstract class GuiComponent(
      * @see hook
      */
     class ComponentAlreadyInUseException : RuntimeException()
+
+    /**
+     * Dieser Fehler wird geworfen, wenn eine Rekursion aus Komponenten entstehen würde
+     */
+    class ComponentRekursionException : IllegalArgumentException()
 
 }

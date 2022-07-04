@@ -27,6 +27,7 @@ dependencies {
     compileOnly("org.spigotmc:spigot-api:$spigotVersion")
     //tests
     testImplementation(kotlin("test"))
+    testImplementation("org.spigotmc:spigot-api:$spigotVersion")
 }
 
 tasks.test {

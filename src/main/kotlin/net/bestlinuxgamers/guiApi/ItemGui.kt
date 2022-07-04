@@ -34,7 +34,7 @@ abstract class ItemGui(
 
     init {
         if (lines < 1 || lines > 6) throw IllegalArgumentException("Guis must have 1-6 lines")
-        super.hook()
+        super.lock()
     }
 
     private var inventory: Inventory? = null
