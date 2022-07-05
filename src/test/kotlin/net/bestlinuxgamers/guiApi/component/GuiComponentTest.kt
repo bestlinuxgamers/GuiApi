@@ -128,6 +128,32 @@ internal class GuiComponentTest {
 
     }
 
+    @Test
+    fun testGetComponentsOfType() {
+        class TestComponent : GuiComponent(ReservedSlots(1, 1), false) {
+            override fun setUp() {}
+            override fun beforeRender(frame: Long) {}
+        }
+
+        val instance = ResizableTestComponent(4, 4)
+        val comp1 = ResizableTestComponent(1, 1)
+        val comp2 = TestComponent()
+        val comp3 = ResizableTestComponent(1, 1)
+        val comp4 = TestComponent()
+
+        instance.apply {
+            setComponent(comp1, 0)
+            setComponent(comp2, 1)
+            setComponent(comp3, 2)
+            setComponent(comp4, 3)
+        }
+
+        Assertions.assertEquals(setOf(comp1, comp3), instance.getComponentsOfType<ResizableTestComponent>())
+        Assertions.assertEquals(setOf(comp2, comp4), instance.getComponentsOfType<TestComponent>())
+
+        Assertions.assertEquals(setOf(comp1, comp2, comp3, comp4), instance.getComponents())
+    }
+
 
     private class ResizableTestComponent(height: Int, width: Int) :
         GuiComponent(ReservedSlots(height, width), false) {

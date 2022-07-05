@@ -143,16 +143,15 @@ abstract class GuiComponent(
      * @param COMPONENT Typ der gesuchten Komponente
      * @return Komponente des Typs, oder null
      */
-    inline fun <reified COMPONENT : GuiComponent> getComponent(): COMPONENT? { //TODO - was, wenn mehrere Komponenten mit dem gleichen Typ
+    inline fun <reified COMPONENT : GuiComponent> getComponentsOfType(): Set<COMPONENT> {
         val componentClass = COMPONENT::class
-        getComponents().forEach { if (it::class == componentClass) return it as COMPONENT }
-        return null
+        return getComponents().mapNotNull { if(it::class == componentClass) it as COMPONENT else null }.toSet()
     }
 
     /**
      * @return alle untergeordneten Komponenten dieser Komponente
      */
-    fun getComponents(): Set<GuiComponent> { //TODO was, wenn component doppelt
+    fun getComponents(): Set<GuiComponent> {
         return components.mapNotNull { it?.component }.toSet()
     }
 
