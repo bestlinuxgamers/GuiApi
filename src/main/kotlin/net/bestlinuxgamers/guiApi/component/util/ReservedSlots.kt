@@ -1,4 +1,4 @@
-package net.bestlinuxgamers.guiApi.component
+package net.bestlinuxgamers.guiApi.component.util
 
 /**
  * Klasse speichert die Reservierung von Slots im zweidimensionalen Raum.
@@ -175,10 +175,4 @@ class ReservedSlots(reservedSlotsArr2D: Array<Array<Boolean>>) {
         fun generateReservedRow(width: Int, reserved: Boolean = true): Array<Boolean> = Array(width) { reserved }
     }
 
-    /**
-     * Repräsentiert eine Position im zweidimensionalen Raum.
-     * y = vertikal
-     * x = horizontal
-     */
-    data class Position2D(val x: Int, val y: Int)
 }

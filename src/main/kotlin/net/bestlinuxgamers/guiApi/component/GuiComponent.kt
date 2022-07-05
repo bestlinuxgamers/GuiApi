@@ -1,5 +1,6 @@
 package net.bestlinuxgamers.guiApi.component
 
+import net.bestlinuxgamers.guiApi.component.util.*
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemStack
 
@@ -122,7 +123,7 @@ abstract class GuiComponent(
                 if (rowData) {
                     componentReservedMapped.add(
                         reservedSlots.getIndexOfPos(
-                            ReservedSlots.Position2D(row + startPosition.x, line + startPosition.y)
+                            Position2D(row + startPosition.x, line + startPosition.y)
                         )
                     )
                 }
@@ -227,23 +228,5 @@ abstract class GuiComponent(
     /**
      * Klasse, welche eine [GuiComponent] mit einem Index verbindet
      */
-    data class ComponentIndexMap(val component: GuiComponent, val index: Int)
-
-    //exceptions
-    /**
-     * Dieser Fehler wird geworfen, wenn sich eine Komponente mit einer anderen überlappt
-     */
-    class ComponentOverlapException : RuntimeException()
-
-    /**
-     * Dieser Fehler wird geworfen, wenn eine [GuiComponent] bereits verwendet wird
-     * @see hook
-     */
-    class ComponentAlreadyInUseException : RuntimeException()
-
-    /**
-     * Dieser Fehler wird geworfen, wenn eine Rekursion aus Komponenten entstehen würde
-     */
-    class ComponentRekursionException : IllegalArgumentException()
-
+    private data class ComponentIndexMap(val component: GuiComponent, val index: Int)
 }

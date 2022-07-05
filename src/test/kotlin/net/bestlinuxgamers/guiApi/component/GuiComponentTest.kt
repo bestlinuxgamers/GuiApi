@@ -1,5 +1,9 @@
 package net.bestlinuxgamers.guiApi.component
 
+import net.bestlinuxgamers.guiApi.component.util.ComponentAlreadyInUseException
+import net.bestlinuxgamers.guiApi.component.util.ComponentOverlapException
+import net.bestlinuxgamers.guiApi.component.util.ComponentRekursionException
+import net.bestlinuxgamers.guiApi.component.util.ReservedSlots
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
@@ -29,13 +33,13 @@ internal class GuiComponentTest {
 
         hooker.setComponent(instance, 0)
 
-        Assertions.assertThrows(GuiComponent.ComponentAlreadyInUseException::class.java) {
+        Assertions.assertThrows(ComponentAlreadyInUseException::class.java) {
             instance2.setComponent(instance, 0)
         }
 
-        Assertions.assertThrows(GuiComponent.ComponentAlreadyInUseException::class.java) { instance.lock() }
+        Assertions.assertThrows(ComponentAlreadyInUseException::class.java) { instance.lock() }
 
-        Assertions.assertThrows(GuiComponent.ComponentAlreadyInUseException::class.java) {
+        Assertions.assertThrows(ComponentAlreadyInUseException::class.java) {
             instance2.setComponent(hooker, 0)
         }
 
@@ -46,7 +50,7 @@ internal class GuiComponentTest {
     fun testRekursion() {
         val instance1 = ResizableTestComponent(1, 1) //hook instance4
 
-        Assertions.assertThrows(GuiComponent.ComponentRekursionException::class.java) {
+        Assertions.assertThrows(ComponentRekursionException::class.java) {
             instance1.setComponent(instance1, 0)
         }
 
@@ -58,7 +62,7 @@ internal class GuiComponentTest {
         instance2.setComponent(instance3, 0)
         instance3.setComponent(instance4, 0)
 
-        Assertions.assertThrows(GuiComponent.ComponentRekursionException::class.java) {
+        Assertions.assertThrows(ComponentRekursionException::class.java) {
             instance4.setComponent(instance1, 0)
         }
 
@@ -73,7 +77,7 @@ internal class GuiComponentTest {
 
         instance.setComponent(component2, 0)
 
-        Assertions.assertThrows(GuiComponent.ComponentAlreadyInUseException::class.java) {
+        Assertions.assertThrows(ComponentAlreadyInUseException::class.java) {
             instance.setComponent(component2, 8)
         }
 
@@ -81,7 +85,7 @@ internal class GuiComponentTest {
             instance.setComponent(ResizableTestComponent(2, 4), 9)
         }
 
-        Assertions.assertThrows(GuiComponent.ComponentOverlapException::class.java) {
+        Assertions.assertThrows(ComponentOverlapException::class.java) {
             instance.setComponent(ResizableTestComponent(2, 3), 5)
         }
 
@@ -116,11 +120,11 @@ internal class GuiComponentTest {
         instance.setComponent(ResizableTestComponent(1, 1), 0)
         instance.setComponent(ResizableTestComponent(1, 1), 2)
 
-        Assertions.assertThrows(GuiComponent.ComponentOverlapException::class.java) {
+        Assertions.assertThrows(ComponentOverlapException::class.java) {
             instance.setComponent(ResizableTestComponent(1, 1), 1)
         }
         instance.setComponent(ResizableTestComponent(1, 1), 10)
-        Assertions.assertThrows(GuiComponent.ComponentOverlapException::class.java) {
+        Assertions.assertThrows(ComponentOverlapException::class.java) {
             instance.setComponent(ResizableTestComponent(1, 1), 11)
         }
         instance.setComponent(ResizableTestComponent(1, 8), 12)

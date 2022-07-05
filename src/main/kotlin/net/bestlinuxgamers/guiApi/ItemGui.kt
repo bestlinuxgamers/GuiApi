@@ -1,7 +1,7 @@
 package net.bestlinuxgamers.guiApi
 
 import net.bestlinuxgamers.guiApi.component.GuiComponent
-import net.bestlinuxgamers.guiApi.component.ReservedSlots
+import net.bestlinuxgamers.guiApi.component.util.ReservedSlots
 import net.bestlinuxgamers.guiApi.extensions.updateItems
 import net.bestlinuxgamers.guiApi.extensions.writeItems
 import org.bukkit.Bukkit

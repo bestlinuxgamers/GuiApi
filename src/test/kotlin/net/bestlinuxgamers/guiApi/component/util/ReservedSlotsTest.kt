@@ -1,8 +1,8 @@
-package net.bestlinuxgamers.guiApi.component
+package net.bestlinuxgamers.guiApi.component.util
 
-import net.bestlinuxgamers.guiApi.component.ReservedSlots.Companion.generateReservedArr2D
-import net.bestlinuxgamers.guiApi.component.ReservedSlots.Companion.translateArr1DToArr2D
-import net.bestlinuxgamers.guiApi.component.ReservedSlots.Companion.translateArr1DToArr2DSquare
+import net.bestlinuxgamers.guiApi.component.util.ReservedSlots.Companion.generateReservedArr2D
+import net.bestlinuxgamers.guiApi.component.util.ReservedSlots.Companion.translateArr1DToArr2D
+import net.bestlinuxgamers.guiApi.component.util.ReservedSlots.Companion.translateArr1DToArr2DSquare
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
@@ -162,20 +162,20 @@ internal class ReservedSlotsTest {
         val reservedSlots = ReservedSlots(reserved)
 
         val idx1 = 0
-        val pos1 = ReservedSlots.Position2D(1, 1)
+        val pos1 = Position2D(1, 1)
 
         val idx2 = 3
-        val pos2 = ReservedSlots.Position2D(3, 3)
+        val pos2 = Position2D(3, 3)
 
         val idx3 = 7
-        val pos3 = ReservedSlots.Position2D(2, 6)
+        val pos3 = Position2D(2, 6)
 
 
         val reserved2: Array<Array<Boolean>> =
             arrayOf(arrayOf(false, false), arrayOf(false), arrayOf(false, true), arrayOf(true))
         val reservedSlots2 = ReservedSlots(reserved2)
 
-        val pos1r2 = ReservedSlots.Position2D(2, 1)
+        val pos1r2 = Position2D(2, 1)
 
         Assertions.assertEquals(pos1, reservedSlots.getPosOfIndex(idx1))
         Assertions.assertEquals(pos2, reservedSlots.getPosOfIndex(idx2))
@@ -197,22 +197,22 @@ internal class ReservedSlotsTest {
         )
         val reservedSlots = ReservedSlots(reserved)
 
-        val pos1 = ReservedSlots.Position2D(1, 1)
+        val pos1 = Position2D(1, 1)
         val targetPos1 = 0
 
-        val pos2 = ReservedSlots.Position2D(1, 3)
+        val pos2 = Position2D(1, 3)
         val targetPos2 = 2
 
-        val pos3 = ReservedSlots.Position2D(4, 6)
+        val pos3 = Position2D(4, 6)
         val targetPos3 = 13
 
-        val pos4 = ReservedSlots.Position2D(5, 5)
+        val pos4 = Position2D(5, 5)
         val targetPos4 = 9
 
-        val errPos1 = ReservedSlots.Position2D(0, 3)
-        val errPos2 = ReservedSlots.Position2D(1, 0)
-        val errPos3 = ReservedSlots.Position2D(1, 4)
-        val errPos4 = ReservedSlots.Position2D(6, 5)
+        val errPos1 = Position2D(0, 3)
+        val errPos2 = Position2D(1, 0)
+        val errPos3 = Position2D(1, 4)
+        val errPos4 = Position2D(6, 5)
 
         Assertions.assertEquals(targetPos1, reservedSlots.getIndexOfPos(pos1))
         Assertions.assertEquals(targetPos2, reservedSlots.getIndexOfPos(pos2))

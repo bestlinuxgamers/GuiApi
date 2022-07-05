@@ -1,7 +1,7 @@
 package net.bestlinuxgamers.guiApi.component.essentials
 
 import net.bestlinuxgamers.guiApi.component.GuiComponent
-import net.bestlinuxgamers.guiApi.component.ReservedSlots
+import net.bestlinuxgamers.guiApi.component.util.ReservedSlots
 import org.bukkit.inventory.ItemStack
 
 /**
