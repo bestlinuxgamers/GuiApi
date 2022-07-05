@@ -49,22 +49,6 @@ class ReservedSlots(reservedSlotsArr2D: Array<Array<Boolean>>) {
     @Suppress("unused")
     constructor(width: Int, reservedSlots: Array<Boolean>) : this(translateArr1DToArr2DSquare(width, reservedSlots))
 
-    //reservedSlots
-    val totalReserved: Int by lazy { calculateReservedSize() }
-
-    /**
-     * @return Anzahl aller **verfügbaren** Slots
-     */
-    private fun calculateReservedSize(): Int = reservedSlotsArr2D.sumOf { it.filter { it2 -> it2 }.size }
-
-    /**
-     * @param line Zeile (0 Index)
-     * @return die Anzahl an **verfügbaren** Slots in Zeile [line]
-     * @throws ArrayIndexOutOfBoundsException Wenn es [line] nicht gibt
-     */
-    @Suppress("MemberVisibilityCanBePrivate")
-    fun getReservedOfLine(line: Int): Int = reservedSlotsArr2D[line].filter { it }.size
-
     //allSlots
 
     private val arrSize by lazy { calculateArrSize() }
@@ -80,14 +64,33 @@ class ReservedSlots(reservedSlotsArr2D: Array<Array<Boolean>>) {
      */
     private fun getArrSizeOfLine(line: Int): Int = reservedSlotsArr2D[line].size
 
+    //reservedSlots
+
+    val totalReserved: Int by lazy { calculateReservedSize() }
+
+    /**
+     * @return Anzahl aller **verfügbaren** Slots
+     */
+    private fun calculateReservedSize(): Int = reservedSlotsArr2D.sumOf { it.filter { it2 -> it2 }.size }
+
+    /**
+     * @param line Zeile (0 Index)
+     * @return die Anzahl an **verfügbaren** Slots in Zeile [line]
+     * @throws ArrayIndexOutOfBoundsException Wenn es [line] nicht gibt
+     */
+    @Suppress("MemberVisibilityCanBePrivate")
+    fun getReservedOfLine(line: Int): Int = reservedSlotsArr2D[line].filter { it }.size
+
+    //pos <-> index
+
     /**
      * @param index 0 Index eines **verfügbaren** Slots
      * @return [Position2D] des [index]ten **verfügbaren** Elements. X = row, Y = line
      * @throws ArrayIndexOutOfBoundsException Wenn [index] nicht existiert
      */
-    fun getPosOfIndex(index: Int): Position2D {
-        if (index >= arrSize) throw ArrayIndexOutOfBoundsException("Can't find index $index, because size is $arrSize")
+    fun getPosOfReservedIndex(index: Int): Position2D {
         if (index < 0) throw ArrayIndexOutOfBoundsException("Index can't be negative'")
+        if (index >= arrSize) throw ArrayIndexOutOfBoundsException("Can't find index $index, because size is $arrSize")
 
         var count = 0
         reservedSlotsArr2D.forEachIndexed { line, lineData ->
@@ -102,24 +105,48 @@ class ReservedSlots(reservedSlotsArr2D: Array<Array<Boolean>>) {
     }
 
     /**
-     * Gibt den eindimensionalen Index im Speicher von einer zweidimensionalen Position zurück.
+     * Gibt den eindimensionalen Index eines reservierten Slots von einer zweidimensionalen Position zurück.
      * @param position Position (y = Zeile, x = Spalte)
      * @return Index der [position]
      * @throws ArrayIndexOutOfBoundsException Wenn die [position] im Speicher nicht existiert.
-     * (Zeile y wurde nicht gesetzt oder Zeile y hat weniger als x Spalten)
+     * (Zeile y wurde nicht gesetzt oder Zeile y hat weniger als x reservierte Spalten)
      */
-    fun getIndexOfPos(position: Position2D): Int {
+    fun getReservedIndexOfPos(position: Position2D): Int {
         if (position.x <= 0) throw ArrayIndexOutOfBoundsException("Row can't be negative!")
         val targetLineSize = getArrSizeOfLine(position.y - 1)
         if (position.x > targetLineSize) throw ArrayIndexOutOfBoundsException(
             "Can't find ${position.x} in line ${position.y}, because size is $targetLineSize!"
         )
 
-        var count: Int = position.x - 1
+        var count: Int = getReservedLineIndexOfLineIndex(position.y - 1, position.x - 1)
         for (i in 0 until position.y - 1) {
-            count += getArrSizeOfLine(i)
+            count += getReservedOfLine(i)
         }
         return count
+    }
+
+    /**
+     * Konvertiert einen Index einer Zeile in den reservierten Index einer Zeile
+     * @param line Zeile (0 Index)
+     * @param index Index der Zeile (0 Index)
+     * @return Den Index des reservierten Slots auf [index]
+     * @throws ArrayIndexOutOfBoundsException Wenn der [index] außerhalb der Größe von Zeile [line] liegt
+     * @throws SlotNotReservedException Wenn der Slot auf [index] nicht reserviert ist
+     */
+    private fun getReservedLineIndexOfLineIndex(line: Int, index: Int): Int {
+        if (index < 0) throw ArrayIndexOutOfBoundsException("Index can't be negative")
+        val lineSize = getArrSizeOfLine(line)
+        if (index > lineSize) throw ArrayIndexOutOfBoundsException("Can't find index $index of line $line, because size is $lineSize!")
+
+        var count = -1
+        reservedSlotsArr2D[line].forEachIndexed { idx, reserved ->
+            if (reserved) count++
+            if (index == idx) {
+                if (!reserved) throw SlotNotReservedException("Slot $index of line $line is not reserved!")
+                return count
+            }
+        }
+        throw ArrayIndexOutOfBoundsException("$index of line $line is bigger than $lineSize!")
     }
 
     //getter
@@ -128,11 +155,6 @@ class ReservedSlots(reservedSlotsArr2D: Array<Array<Boolean>>) {
      * @return Klon vom Speicher der reservierten Slots
      */
     fun getArr2D() = reservedSlotsArr2D.clone()
-
-    /**
-     * Dieser Fehler wird geworfen, wenn ein angegebener Speicher keine reservierten Slots enthält
-     */
-    class NoReservedSlotsException : IllegalArgumentException()
 
     companion object {
         /**

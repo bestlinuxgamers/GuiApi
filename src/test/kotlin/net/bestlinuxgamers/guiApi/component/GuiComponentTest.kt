@@ -1,9 +1,6 @@
 package net.bestlinuxgamers.guiApi.component
 
-import net.bestlinuxgamers.guiApi.component.util.ComponentAlreadyInUseException
-import net.bestlinuxgamers.guiApi.component.util.ComponentOverlapException
-import net.bestlinuxgamers.guiApi.component.util.ComponentRekursionException
-import net.bestlinuxgamers.guiApi.component.util.ReservedSlots
+import net.bestlinuxgamers.guiApi.component.util.*
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 
@@ -116,6 +113,10 @@ internal class GuiComponentTest {
         val instance = ResizableTestComponent(10, 10)
         val testCpn = AsymmetricTestComponent(reserved)
 
+        Assertions.assertThrows(SlotNotReservedException::class.java) {
+            testCpn.setComponent(ResizableTestComponent(2, 1), 1)
+        }
+
         instance.setComponent(testCpn, 0)
         instance.setComponent(ResizableTestComponent(1, 1), 0)
         instance.setComponent(ResizableTestComponent(1, 1), 2)
@@ -134,7 +135,7 @@ internal class GuiComponentTest {
 
     @Test
     fun testGetComponentsOfType() {
-        class TestComponent : GuiComponent(ReservedSlots(1, 1), false) {
+        class TestComponent : GuiComponent(ReservedSlots(1, 1), true) {
             override fun setUp() {}
             override fun beforeRender(frame: Long) {}
         }
@@ -166,7 +167,7 @@ internal class GuiComponentTest {
     }
 
     private class AsymmetricTestComponent(reserved: ReservedSlots) :
-        GuiComponent(reserved, false) {
+        GuiComponent(reserved, true) {
         override fun setUp() {}
         override fun beforeRender(frame: Long) {}
     }

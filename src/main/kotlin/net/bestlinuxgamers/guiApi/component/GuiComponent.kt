@@ -110,19 +110,20 @@ abstract class GuiComponent(
      * @throws ComponentOverlapException Falls die [component] eine andere [GuiComponent] überlappen würde
      * @throws ComponentAlreadyInUseException Falls die Instanz der Komponente bereits verwendet wird
      * @throws ComponentRekursionException Fall eine Rekursion an Komponenten entstehen würde
+     * @throws SlotNotReservedException Wenn die Komponente auf einen Slot gesetzt werden soll, welcher nicht verfügbar ist
      * @see hook
      */
     fun setComponent(component: GuiComponent, start: Int) {
-        component.hook(this)
+        component.hook(this) //TODO erst nach am Ende hooken
 
-        val startPosition = reservedSlots.getPosOfIndex(start)
+        val startPosition = reservedSlots.getPosOfReservedIndex(start)
         val componentReservedMapped: ArrayList<Int> = ArrayList()
 
         component.reservedSlots.getArr2D().forEachIndexed { line, lineData ->
             lineData.forEachIndexed { row, rowData ->
                 if (rowData) {
                     componentReservedMapped.add(
-                        reservedSlots.getIndexOfPos(
+                        reservedSlots.getReservedIndexOfPos(
                             Position2D(row + startPosition.x, line + startPosition.y)
                         )
                     )
@@ -146,7 +147,7 @@ abstract class GuiComponent(
      */
     inline fun <reified COMPONENT : GuiComponent> getComponentsOfType(): Set<COMPONENT> {
         val componentClass = COMPONENT::class
-        return getComponents().mapNotNull { if(it::class == componentClass) it as COMPONENT else null }.toSet()
+        return getComponents().mapNotNull { if (it::class == componentClass) it as COMPONENT else null }.toSet()
     }
 
     /**

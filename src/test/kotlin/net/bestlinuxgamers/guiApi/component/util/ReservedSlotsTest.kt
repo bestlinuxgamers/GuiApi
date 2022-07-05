@@ -53,6 +53,24 @@ internal class ReservedSlotsTest {
     //ReservedSlots
 
     @Test
+    fun testTotalCount() {
+        val target = ReservedSlots(3, 7)
+        val reserved = ReservedSlots(
+            arrayOf(
+                arrayOf(false, true),
+                arrayOf(false, true),
+                arrayOf(true, false, true),
+                emptyArray(),
+                arrayOf(false, false, true, false, true),
+                arrayOf(true, true, true, true)
+            )
+        )
+
+        Assertions.assertEquals(21, target.totalReserved)
+        Assertions.assertEquals(10, reserved.totalReserved)
+    }
+
+    @Test
     fun testCrop() {
         val reserved1: Array<Array<Boolean>> = arrayOf(
             arrayOf(false),
@@ -98,9 +116,9 @@ internal class ReservedSlotsTest {
 
         Assertions.assertArrayEquals(target1, reservedSlots1.getArr2D())
         Assertions.assertArrayEquals(target2, reservedSlots2.getArr2D())
-        Assertions.assertThrows(ReservedSlots.NoReservedSlotsException::class.java) { ReservedSlots(target3err) }
-        Assertions.assertThrows(ReservedSlots.NoReservedSlotsException::class.java) { ReservedSlots(0, 4) }
-        Assertions.assertThrows(ReservedSlots.NoReservedSlotsException::class.java) { ReservedSlots(2, 0) }
+        Assertions.assertThrows(NoReservedSlotsException::class.java) { ReservedSlots(target3err) }
+        Assertions.assertThrows(NoReservedSlotsException::class.java) { ReservedSlots(0, 4) }
+        Assertions.assertThrows(NoReservedSlotsException::class.java) { ReservedSlots(2, 0) }
     }
 
     @Test
@@ -177,16 +195,16 @@ internal class ReservedSlotsTest {
 
         val pos1r2 = Position2D(2, 1)
 
-        Assertions.assertEquals(pos1, reservedSlots.getPosOfIndex(idx1))
-        Assertions.assertEquals(pos2, reservedSlots.getPosOfIndex(idx2))
-        Assertions.assertEquals(pos3, reservedSlots.getPosOfIndex(idx3))
-        Assertions.assertEquals(pos1r2, reservedSlots2.getPosOfIndex(idx1))
-        Assertions.assertThrows(ArrayIndexOutOfBoundsException::class.java) { reservedSlots.getPosOfIndex(-1) }
-        Assertions.assertThrows(ArrayIndexOutOfBoundsException::class.java) { reservedSlots.getPosOfIndex(100) }
+        Assertions.assertEquals(pos1, reservedSlots.getPosOfReservedIndex(idx1))
+        Assertions.assertEquals(pos2, reservedSlots.getPosOfReservedIndex(idx2))
+        Assertions.assertEquals(pos3, reservedSlots.getPosOfReservedIndex(idx3))
+        Assertions.assertEquals(pos1r2, reservedSlots2.getPosOfReservedIndex(idx1))
+        Assertions.assertThrows(ArrayIndexOutOfBoundsException::class.java) { reservedSlots.getPosOfReservedIndex(-1) }
+        Assertions.assertThrows(ArrayIndexOutOfBoundsException::class.java) { reservedSlots.getPosOfReservedIndex(100) }
     }
 
     @Test
-    fun testGetIndexOfPos() {
+    fun testGetReservedIndexOfPos() {
         val reserved: Array<Array<Boolean>> = arrayOf(
             arrayOf(true, false),
             arrayOf(true),
@@ -204,24 +222,46 @@ internal class ReservedSlotsTest {
         val targetPos2 = 2
 
         val pos3 = Position2D(4, 6)
-        val targetPos3 = 13
+        val targetPos3 = 9
 
         val pos4 = Position2D(5, 5)
-        val targetPos4 = 9
+        val targetPos4 = 5
+
+        val pos5 = Position2D(3, 5)
+        val targetPos5 = 4
 
         val errPos1 = Position2D(0, 3)
         val errPos2 = Position2D(1, 0)
         val errPos3 = Position2D(1, 4)
         val errPos4 = Position2D(6, 5)
+        val errPos5 = Position2D(2, 3)
 
-        Assertions.assertEquals(targetPos1, reservedSlots.getIndexOfPos(pos1))
-        Assertions.assertEquals(targetPos2, reservedSlots.getIndexOfPos(pos2))
-        Assertions.assertEquals(targetPos3, reservedSlots.getIndexOfPos(pos3))
-        Assertions.assertEquals(targetPos4, reservedSlots.getIndexOfPos(pos4))
-        Assertions.assertThrows(ArrayIndexOutOfBoundsException::class.java) { reservedSlots.getIndexOfPos(errPos1) }
-        Assertions.assertThrows(ArrayIndexOutOfBoundsException::class.java) { reservedSlots.getIndexOfPos(errPos2) }
-        Assertions.assertThrows(ArrayIndexOutOfBoundsException::class.java) { reservedSlots.getIndexOfPos(errPos3) }
-        Assertions.assertThrows(ArrayIndexOutOfBoundsException::class.java) { reservedSlots.getIndexOfPos(errPos4) }
+        Assertions.assertEquals(targetPos1, reservedSlots.getReservedIndexOfPos(pos1))
+        Assertions.assertEquals(targetPos2, reservedSlots.getReservedIndexOfPos(pos2))
+        Assertions.assertEquals(targetPos3, reservedSlots.getReservedIndexOfPos(pos3))
+        Assertions.assertEquals(targetPos4, reservedSlots.getReservedIndexOfPos(pos4))
+        Assertions.assertEquals(targetPos5, reservedSlots.getReservedIndexOfPos(pos5))
+        Assertions.assertThrows(ArrayIndexOutOfBoundsException::class.java) {
+            reservedSlots.getReservedIndexOfPos(
+                errPos1
+            )
+        }
+        Assertions.assertThrows(ArrayIndexOutOfBoundsException::class.java) {
+            reservedSlots.getReservedIndexOfPos(
+                errPos2
+            )
+        }
+        Assertions.assertThrows(ArrayIndexOutOfBoundsException::class.java) {
+            reservedSlots.getReservedIndexOfPos(
+                errPos3
+            )
+        }
+        Assertions.assertThrows(ArrayIndexOutOfBoundsException::class.java) {
+            reservedSlots.getReservedIndexOfPos(
+                errPos4
+            )
+        }
+        Assertions.assertThrows(SlotNotReservedException::class.java) { reservedSlots.getReservedIndexOfPos(errPos5) }
 
     }
 }
