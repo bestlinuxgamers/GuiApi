@@ -15,7 +15,7 @@ internal class ReservedSlotsTest {
             arrayOf(arrayOf(true, true, true, true), arrayOf(true, true, true, true), arrayOf(true, true, true, true))
         val result = generateReservedArr2D(3, 4)
 
-        Assertions.assertEquals(makeArr2DComparable(target), makeArr2DComparable(result))
+        Assertions.assertArrayEquals(target, result)
     }
 
     @Test
@@ -35,7 +35,7 @@ internal class ReservedSlotsTest {
 
         val result: Array<Array<Boolean>> = translateArr1DToArr2D(widths, reserved)
 
-        Assertions.assertEquals(makeArr2DComparable(target), makeArr2DComparable(result))
+        Assertions.assertArrayEquals(target, result)
     }
 
     @Test
@@ -47,7 +47,7 @@ internal class ReservedSlotsTest {
 
         val result = translateArr1DToArr2DSquare(width, reserved)
 
-        Assertions.assertEquals(makeArr2DComparable(target), makeArr2DComparable(result))
+        Assertions.assertArrayEquals(target, result)
     }
 
     //ReservedSlots
@@ -96,11 +96,11 @@ internal class ReservedSlotsTest {
         )
 
 
-        Assertions.assertEquals(makeArr2DComparable(target1), makeArr2DComparable(reservedSlots1.getArr2D()))
-        Assertions.assertEquals(makeArr2DComparable(target2), makeArr2DComparable(reservedSlots2.getArr2D()))
+        Assertions.assertArrayEquals(target1, reservedSlots1.getArr2D())
+        Assertions.assertArrayEquals(target2, reservedSlots2.getArr2D())
         Assertions.assertThrows(ReservedSlots.NoReservedSlotsException::class.java) { ReservedSlots(target3err) }
-        Assertions.assertThrows(ReservedSlots.NoReservedSlotsException::class.java) { ReservedSlots(0,4) }
-        Assertions.assertThrows(ReservedSlots.NoReservedSlotsException::class.java) { ReservedSlots(2,0) }
+        Assertions.assertThrows(ReservedSlots.NoReservedSlotsException::class.java) { ReservedSlots(0, 4) }
+        Assertions.assertThrows(ReservedSlots.NoReservedSlotsException::class.java) { ReservedSlots(2, 0) }
     }
 
     @Test
@@ -223,10 +223,5 @@ internal class ReservedSlotsTest {
         Assertions.assertThrows(ArrayIndexOutOfBoundsException::class.java) { reservedSlots.getIndexOfPos(errPos3) }
         Assertions.assertThrows(ArrayIndexOutOfBoundsException::class.java) { reservedSlots.getIndexOfPos(errPos4) }
 
-    }
-
-
-    companion object {
-        fun <T> makeArr2DComparable(array2D: Array<Array<T>>) = array2D.map { it.contentToString() }
     }
 }
