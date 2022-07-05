@@ -7,7 +7,7 @@ internal class GuiComponentTest {
 
     @Test
     fun testSetup() {
-        class TestComponent : GuiComponent(ReservedSlots(1, 1), false) {
+        class TestComponent : GuiComponent(ReservedSlots(1, 1), true) {
             override fun setUp() {
                 throw TestSucceeded()
             }
@@ -20,14 +20,9 @@ internal class GuiComponentTest {
 
     @Test
     fun testLock() {
-        class TestComponent : GuiComponent(ReservedSlots(1, 1), false) {
-            override fun setUp() {}
-            override fun beforeRender(frame: Long) {}
-        }
-
-        val instance = TestComponent()
-        val instance2 = TestComponent()
-        val hooker = TestComponent().apply { lock() }
+        val instance = ResizableTestComponent(1, 1)
+        val instance2 = ResizableTestComponent(1, 1)
+        val hooker = ResizableTestComponent(1, 1).apply { lock() }
 
         Assertions.assertEquals(null, instance.getParentComponent())
         Assertions.assertEquals(null, hooker.getParentComponent())
@@ -49,20 +44,15 @@ internal class GuiComponentTest {
 
     @Test
     fun testRekursion() {
-        class TestComponent : GuiComponent(ReservedSlots(1, 1), true) {
-            override fun setUp() {}
-            override fun beforeRender(frame: Long) {}
-        }
-
-        val instance1 = TestComponent() //hook instance4
+        val instance1 = ResizableTestComponent(1, 1) //hook instance4
 
         Assertions.assertThrows(GuiComponent.ComponentRekursionException::class.java) {
             instance1.setComponent(instance1, 0)
         }
 
-        val instance2 = TestComponent() //hook instance1
-        val instance3 = TestComponent() //hook instance2
-        val instance4 = TestComponent() //hooke instance3
+        val instance2 = ResizableTestComponent(1, 1) //hook instance1
+        val instance3 = ResizableTestComponent(1, 1) //hook instance2
+        val instance4 = ResizableTestComponent(1, 1) //hooke instance3
 
         instance1.setComponent(instance2, 0)
         instance2.setComponent(instance3, 0)
@@ -72,8 +62,83 @@ internal class GuiComponentTest {
             instance4.setComponent(instance1, 0)
         }
 
-        val instance5 = TestComponent()
+        val instance5 = ResizableTestComponent(1, 1)
         instance4.setComponent(instance5, 0)
+    }
+
+    @Test
+    fun testSetItemSquare() {
+        val instance = ResizableTestComponent(4, 4)
+        val component2 = ResizableTestComponent(2, 4)
+
+        instance.setComponent(component2, 0)
+
+        Assertions.assertThrows(GuiComponent.ComponentAlreadyInUseException::class.java) {
+            instance.setComponent(component2, 8)
+        }
+
+        Assertions.assertThrows(ArrayIndexOutOfBoundsException::class.java) {
+            instance.setComponent(ResizableTestComponent(2, 4), 9)
+        }
+
+        Assertions.assertThrows(GuiComponent.ComponentOverlapException::class.java) {
+            instance.setComponent(ResizableTestComponent(2, 3), 5)
+        }
+
+        instance.setComponent(ResizableTestComponent(2, 4), 8)
+
+        Assertions.assertThrows(ArrayIndexOutOfBoundsException::class.java) {
+            instance.setComponent(ResizableTestComponent(1, 3), 17)
+        }
+
+        Assertions.assertThrows(ArrayIndexOutOfBoundsException::class.java) {
+            instance.setComponent(ResizableTestComponent(1, 3), -4)
+        }
+    }
+
+    @Test
+    fun testSetItem() {
+        val reserved = ReservedSlots(
+            arrayOf(
+                arrayOf(false, true),
+                arrayOf(false, true),
+                arrayOf(true, false, true),
+                emptyArray(),
+                arrayOf(false, false, true, false, true),
+                arrayOf(true, true, true, true)
+            )
+        )
+
+        val instance = ResizableTestComponent(10, 10)
+        val testCpn = AsymmetricTestComponent(reserved)
+
+        instance.setComponent(testCpn, 0)
+        instance.setComponent(ResizableTestComponent(1, 1), 0)
+        instance.setComponent(ResizableTestComponent(1, 1), 2)
+
+        Assertions.assertThrows(GuiComponent.ComponentOverlapException::class.java) {
+            instance.setComponent(ResizableTestComponent(1, 1), 1)
+        }
+        instance.setComponent(ResizableTestComponent(1, 1), 10)
+        Assertions.assertThrows(GuiComponent.ComponentOverlapException::class.java) {
+            instance.setComponent(ResizableTestComponent(1, 1), 11)
+        }
+        instance.setComponent(ResizableTestComponent(1, 8), 12)
+        instance.setComponent(ResizableTestComponent(1, 10), 30)
+
+    }
+
+
+    private class ResizableTestComponent(height: Int, width: Int) :
+        GuiComponent(ReservedSlots(height, width), false) {
+        override fun setUp() {}
+        override fun beforeRender(frame: Long) {}
+    }
+
+    private class AsymmetricTestComponent(reserved: ReservedSlots) :
+        GuiComponent(reserved, false) {
+        override fun setUp() {}
+        override fun beforeRender(frame: Long) {}
     }
 
     private class TestSucceeded : Exception()

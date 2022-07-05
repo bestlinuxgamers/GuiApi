@@ -99,6 +99,8 @@ internal class ReservedSlotsTest {
         Assertions.assertEquals(makeArr2DComparable(target1), makeArr2DComparable(reservedSlots1.getArr2D()))
         Assertions.assertEquals(makeArr2DComparable(target2), makeArr2DComparable(reservedSlots2.getArr2D()))
         Assertions.assertThrows(ReservedSlots.NoReservedSlotsException::class.java) { ReservedSlots(target3err) }
+        Assertions.assertThrows(ReservedSlots.NoReservedSlotsException::class.java) { ReservedSlots(0,4) }
+        Assertions.assertThrows(ReservedSlots.NoReservedSlotsException::class.java) { ReservedSlots(2,0) }
     }
 
     @Test
