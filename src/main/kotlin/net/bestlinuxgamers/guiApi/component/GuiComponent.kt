@@ -165,7 +165,7 @@ abstract class GuiComponent(
      * @see render
      */
     internal fun renderNextFrame(frame: Long): Array<ItemStack?> {
-        if (static) {
+        if (static) { //TODO statische manuell neu rendern
             lastRender?.let { return it }
         }
         beforeRender(frame)
@@ -177,15 +177,16 @@ abstract class GuiComponent(
      * @param frame Anzahl des Rendervorgangs
      */
     internal open fun render(frame: Long): Array<ItemStack?> {
-        val renderResults: MutableMap<GuiComponent, Array<ItemStack?>> = mutableMapOf()
+        val renderResults: MutableMap<GuiComponent, RenderResultDistributor> = mutableMapOf()
         val output: Array<ItemStack?> = Array(reservedSlots.totalReserved) { renderFallback }
 
         components.forEachIndexed { index, it ->
             if (it != null) {
                 val component: GuiComponent = it.component
                 //renderOrCache
-                (renderResults[component]?.get(index) ?: component.renderNextFrame(frame)
-                    .also { renderResults[component] = it }[index]).also { output[index] = it }
+                output[index] = (renderResults[component]
+                    ?: RenderResultDistributor(component.renderNextFrame(frame)).also { renderResults[component] = it }
+                        ).next()
             }
         }
         return output
@@ -230,4 +231,17 @@ abstract class GuiComponent(
      * Klasse, welche eine [GuiComponent] mit einem Index verbindet
      */
     private data class ComponentIndexMap(val component: GuiComponent, val index: Int)
+
+    /**
+     * Klasse zum einzelnen Abfragen der Slots eines render Ergebnisses
+     * @param result render Ergebnis
+     */
+    private class RenderResultDistributor(val result: Array<ItemStack?>) {
+        private var lastSlot = 0
+
+        /**
+         * @return Inhalt des nächsten Slots des [result]
+         */
+        fun next() = result[lastSlot++]
+    }
 }

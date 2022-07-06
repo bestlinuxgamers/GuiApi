@@ -1,10 +1,21 @@
 package net.bestlinuxgamers.guiApi.component
 
+import net.bestlinuxgamers.guiApi.component.essentials.ItemComponent
 import net.bestlinuxgamers.guiApi.component.util.*
+import net.bestlinuxgamers.guiApi.templates.MinecraftItemTest
+import org.bukkit.Material
+import org.bukkit.inventory.ItemStack
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 
-internal class GuiComponentTest {
+internal object GuiComponentTest {
+
+    @BeforeAll
+    @JvmStatic
+    fun initServer() {
+        MinecraftItemTest.mockServer()
+    }
 
     @Test
     fun testSetup() {
@@ -159,15 +170,67 @@ internal class GuiComponentTest {
         Assertions.assertEquals(setOf(comp1, comp2, comp3, comp4), instance.getComponents())
     }
 
+    @Test
+    fun testRenderSquare() {
+        val target: Array<ItemStack?> =
+            Array(16) { if (it < 8) ItemStack(Material.BARRIER) else ItemStack(Material.BEDROCK) }
+        val instance = ResizableTestComponent(4, 4, ItemStack(Material.BEDROCK))
+        val comp1 = ResizableTestComponent(2, 4, ItemStack(Material.BARRIER))
 
-    private class ResizableTestComponent(height: Int, width: Int) :
-        GuiComponent(ReservedSlots(height, width), false) {
+        instance.setComponent(comp1, 0)
+
+        val result: Array<ItemStack?> = instance.render(0)
+
+        Assertions.assertArrayEquals(target, result)
+    }
+
+    @Test
+    fun testRender() {
+        val reserved = ReservedSlots(
+            arrayOf(
+                arrayOf(false, true, true),
+                arrayOf(false, false, false, true),
+                arrayOf(true, false, false, true)
+            )
+        )
+
+        val comp2 = ResizableTestComponent(2, 1).apply {
+            setComponent(ItemComponent(ItemStack(Material.STICK)), 0)
+            setComponent(ItemComponent(ItemStack(Material.EGG)), 1)
+        }
+        val comp1 = AsymmetricTestComponent(reserved, ItemStack(Material.BARRIER)).apply {
+            setComponent(ItemComponent(ItemStack(Material.STONE)), 0)
+            setComponent(ItemComponent(ItemStack(Material.COBBLESTONE)), 1)
+            setComponent(comp2, 2)
+        }
+        val instance = ResizableTestComponent(3, 4, renderFallback = ItemStack(Material.BEDROCK)).apply {
+            setComponent(comp1, 0)
+        }
+
+        val target: Array<ItemStack> = Array(12) {
+            when (it) {
+                0, in 3 .. 6, 9, 10 -> ItemStack(Material.BEDROCK)
+                1 -> ItemStack(Material.STONE)
+                2 -> ItemStack(Material.COBBLESTONE)
+                7 -> ItemStack(Material.STICK)
+                8 -> ItemStack(Material.BARRIER)
+                11 -> ItemStack(Material.EGG)
+                else -> ItemStack(Material.CAKE)
+            }
+        }
+
+        Assertions.assertArrayEquals(target, instance.render(0))
+    }
+
+
+    private class ResizableTestComponent(height: Int, width: Int, renderFallback: ItemStack? = null) :
+        GuiComponent(ReservedSlots(height, width), true, renderFallback = renderFallback) {
         override fun setUp() {}
         override fun beforeRender(frame: Long) {}
     }
 
-    private class AsymmetricTestComponent(reserved: ReservedSlots) :
-        GuiComponent(reserved, true) {
+    private class AsymmetricTestComponent(reserved: ReservedSlots, renderFallback: ItemStack? = null) :
+        GuiComponent(reserved, true, renderFallback = renderFallback) {
         override fun setUp() {}
         override fun beforeRender(frame: Long) {}
     }

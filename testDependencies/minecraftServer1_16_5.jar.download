@@ -1,0 +1,2 @@
+#Diese Minecraft Server executable wird benötigt, um den Minecraft Server im UniTest zu simulieren
+wget https://download.getbukkit.org/spigot/spigot-1.16.5.jar

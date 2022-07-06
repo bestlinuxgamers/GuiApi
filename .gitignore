@@ -41,3 +41,7 @@ bin/
 
 ### GTM ###
 /.gtm/
+
+### Unit Test dependencies ###
+/testDependencies/*.jar
+/logs

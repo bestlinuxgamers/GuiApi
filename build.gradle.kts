@@ -27,7 +27,8 @@ dependencies {
     compileOnly("org.spigotmc:spigot-api:$spigotVersion")
     //tests
     testImplementation(kotlin("test"))
-    testImplementation("org.spigotmc:spigot-api:$spigotVersion")
+    testImplementation("io.mockk:mockk:1.12.4")
+    testImplementation(files("./testDependencies/spigot-1.16.5.jar"))
 }
 
 tasks.test {
