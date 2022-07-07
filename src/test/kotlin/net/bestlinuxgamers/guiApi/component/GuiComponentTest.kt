@@ -209,7 +209,7 @@ internal object GuiComponentTest {
 
         val target: Array<ItemStack> = Array(12) {
             when (it) {
-                0, in 3 .. 6, 9, 10 -> ItemStack(Material.BEDROCK)
+                0, in 3..6, 9, 10 -> ItemStack(Material.BEDROCK)
                 1 -> ItemStack(Material.STONE)
                 2 -> ItemStack(Material.COBBLESTONE)
                 7 -> ItemStack(Material.STICK)
@@ -222,9 +222,35 @@ internal object GuiComponentTest {
         Assertions.assertArrayEquals(target, instance.render(0))
     }
 
+    @Test
+    fun testStatic() {
+        val instance = ResizableTestComponent(2, 2, renderFallback = ItemStack(Material.BEDROCK))
+        val comp1 = ResizableTestComponent(1, 2, renderFallback = ItemStack(Material.BARRIER))
+        val comp2 = ResizableTestComponent(1, 2, renderFallback = ItemStack(Material.STICK))
 
-    private class ResizableTestComponent(height: Int, width: Int, renderFallback: ItemStack? = null) :
-        GuiComponent(ReservedSlots(height, width), true, renderFallback = renderFallback) {
+        val target: Array<ItemStack> = Array(4) {
+            when (it) {
+                0, 1 -> ItemStack(Material.BARRIER)
+                2, 3 -> ItemStack(Material.BEDROCK)
+                else -> ItemStack(Material.BELL)
+            }
+        }
+
+
+        instance.setComponent(comp1, 0)
+        Assertions.assertArrayEquals(target, instance.renderNextFrame(0))
+        instance.setComponent(comp2, 2)
+        Assertions.assertArrayEquals(target, instance.renderNextFrame(1))
+    }
+
+
+    private class ResizableTestComponent(
+        height: Int,
+        width: Int,
+        renderFallback: ItemStack? = null,
+        static: Boolean = true
+    ) :
+        GuiComponent(ReservedSlots(height, width), static, renderFallback = renderFallback) {
         override fun setUp() {}
         override fun beforeRender(frame: Long) {}
     }

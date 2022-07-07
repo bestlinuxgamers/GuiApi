@@ -19,7 +19,7 @@ import org.bukkit.inventory.ItemStack
 @Suppress("MemberVisibilityCanBePrivate")
 abstract class GuiComponent(
     val reservedSlots: ReservedSlots,
-    val static: Boolean = false,
+    val static: Boolean = false, //TODO dynamic (erst bei Änderung in Komponenten rendern)
     val removable: Boolean = false, //TODO
     val renderFallback: ItemStack? = null
 ) {
@@ -169,7 +169,7 @@ abstract class GuiComponent(
             lastRender?.let { return it }
         }
         beforeRender(frame)
-        return render(frame)
+        return render(frame).also { lastRender = it }
     }
 
     /**
