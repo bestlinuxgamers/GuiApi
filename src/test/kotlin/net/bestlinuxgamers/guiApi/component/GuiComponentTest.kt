@@ -145,6 +145,37 @@ internal object GuiComponentTest {
     }
 
     @Test
+    fun testRemoveComponent() {
+        val instance = ResizableTestComponent(2, 2)
+
+        val comp2 = ResizableTestComponent(2, 1, renderFallback = ItemStack(Material.STICK))
+
+        instance.setComponent(ResizableTestComponent(2, 1, renderFallback = ItemStack(Material.STONE)), 0)
+        instance.setComponent(comp2, 1)
+
+        val target1 = Array(4) {
+            when (it) {
+                0, 2 -> ItemStack(Material.STONE)
+                1, 3 -> ItemStack(Material.STICK)
+                else -> ItemStack(Material.BELL)
+            }
+        }
+        val target2 = Array(4) {
+            when (it) {
+                0, 2 -> ItemStack(Material.STONE)
+                1, 3 -> null
+                else -> ItemStack(Material.BELL)
+            }
+        }
+
+        Assertions.assertArrayEquals(target1, instance.render(0))
+
+        instance.removeComponent(comp2)
+
+        Assertions.assertArrayEquals(target2, instance.render(1))
+    }
+
+    @Test
     fun testGetComponentsOfType() {
         class TestComponent : GuiComponent(ReservedSlots(1, 1), true) {
             override fun setUp() {}
@@ -168,6 +199,32 @@ internal object GuiComponentTest {
         Assertions.assertEquals(setOf(comp2, comp4), instance.getComponentsOfType<TestComponent>())
 
         Assertions.assertEquals(setOf(comp1, comp2, comp3, comp4), instance.getComponents())
+    }
+
+    @Test
+    fun testGetComponentOfIndex() {
+        val reserved = ReservedSlots(
+            arrayOf(
+                arrayOf(false, true),
+                arrayOf(false, true),
+                arrayOf(true, false, true),
+                emptyArray(),
+                arrayOf(false, false, true, false, true),
+                arrayOf(true, true, true, true)
+            )
+        )
+        val instance = AsymmetricTestComponent(reserved)
+
+        val comp1 = ResizableTestComponent(2, 1)
+        val comp2 = ResizableTestComponent(1, 4)
+
+        instance.setComponent(comp1, 0)
+        instance.setComponent(comp2, 6)
+
+        Assertions.assertEquals(comp1, instance.getComponentOfIndex(0))
+        Assertions.assertEquals(comp1, instance.getComponentOfIndex(1))
+        Assertions.assertEquals(comp2, instance.getComponentOfIndex(6))
+        Assertions.assertEquals(comp2, instance.getComponentOfIndex(9))
     }
 
     @Test

@@ -24,10 +24,6 @@ abstract class GuiComponent(
     val renderFallback: ItemStack? = null
 ) {
 
-    init {
-        setUp() //TODO evtl. erst beim start vom rendern aufrufen
-    }
-
     private val components: Array<ComponentIndexMap?> = Array(reservedSlots.totalReserved) { null }
     private var clickAction: (event: InventoryClickEvent, clickedComponent: Int) -> Unit =
         { _: InventoryClickEvent, _: Int -> }
@@ -41,6 +37,12 @@ abstract class GuiComponent(
     private var hook: GuiComponent? = null
     private var locked = false
 
+    //init
+    init {
+        setUp() //TODO evtl. erst beim start vom rendern aufrufen - muss auch vor erster Änderung (z.B. durch setComponent()) ausgeführt werden
+    }
+
+    //hook/lock
     /**
      * Sperrt die Instanz der Komponente für die Nutzung durch eine andere Komponente
      * @param guiComponent Komponente, welche die Sperrung veranlasst
@@ -138,7 +140,24 @@ abstract class GuiComponent(
         }
     }
 
-    //TODO deleteComponent()
+    /**
+     * Entfernt eine Kind-Komponente
+     * @param component Komponente
+     */
+    fun removeComponent(component: GuiComponent) {
+        components.forEachIndexed { index, componentMap ->
+            if (componentMap?.component == component) {
+                components[index] = null
+            }
+        }
+    }
+
+    /**
+     * Entfernt alle Komponenten
+     */
+    fun removeAllComponents() {
+        components.forEachIndexed { index, _ -> components[index] = null}
+    }
 
     /**
      * Methode zum Suchen einer Komponente eines Typs
@@ -149,6 +168,12 @@ abstract class GuiComponent(
         val componentClass = COMPONENT::class
         return getComponents().mapNotNull { if (it::class == componentClass) it as COMPONENT else null }.toSet()
     }
+
+    /**
+     * @param index Index, dessen Komponente zurückgegeben werden soll
+     * @return Komponente an dem Index [index]
+     */
+    fun getComponentOfIndex(index: Int): GuiComponent? = components[index]?.component
 
     /**
      * @return alle untergeordneten Komponenten dieser Komponente
