@@ -18,19 +18,6 @@ internal object GuiComponentTest {
     }
 
     @Test
-    fun testSetup() {
-        class TestComponent : GuiComponent(ReservedSlots(1, 1), true) {
-            override fun setUp() {
-                throw TestSucceeded()
-            }
-
-            override fun beforeRender(frame: Long) {}
-        }
-
-        Assertions.assertThrows(TestSucceeded::class.java) { TestComponent() }
-    }
-
-    @Test
     fun testLock() {
         val instance = ResizableTestComponent(1, 1)
         val instance2 = ResizableTestComponent(1, 1)
@@ -300,6 +287,47 @@ internal object GuiComponentTest {
         Assertions.assertArrayEquals(target, instance.renderNextFrame(1))
     }
 
+    @Test
+    fun testSetup() {
+        class TestComponent : GuiComponent(ReservedSlots(1, 1), true, renderFallback = ItemStack(Material.BARRIER)) {
+            override fun setUp() {
+                setComponent(ItemComponent(ItemStack(Material.STICK)), 0)
+            }
+
+            override fun beforeRender(frame: Long) {}
+        }
+
+        val instance = TestComponent()
+        val target = Array(1) { ItemStack(Material.STICK) }
+
+        Assertions.assertArrayEquals(target, instance.renderNextFrame(0))
+    }
+
+    @Test
+    fun testBeforeRender() {
+        class TestComponent : GuiComponent(ReservedSlots(1, 1), false) {
+            override fun setUp() {}
+
+            override fun beforeRender(frame: Long) {
+                when (frame) {
+                    1.toLong() -> {
+                        removeAllComponents()
+                        setComponent(ItemComponent(ItemStack(Material.STONE)), 0)
+                    }
+                }
+            }
+        }
+
+        val instance = TestComponent()
+        val target1 = Array(1) { ItemStack(Material.STICK) }
+        val target2 = Array(1) { ItemStack(Material.STONE) }
+
+        instance.setComponent(ResizableTestComponent(1, 1, renderFallback = ItemStack(Material.STICK)), 0)
+
+        Assertions.assertArrayEquals(target1, instance.renderNextFrame(0))
+        Assertions.assertArrayEquals(target2, instance.renderNextFrame(1))
+    }
+
 
     private class ResizableTestComponent(
         height: Int,
@@ -317,6 +345,4 @@ internal object GuiComponentTest {
         override fun setUp() {}
         override fun beforeRender(frame: Long) {}
     }
-
-    private class TestSucceeded : Exception()
 }
