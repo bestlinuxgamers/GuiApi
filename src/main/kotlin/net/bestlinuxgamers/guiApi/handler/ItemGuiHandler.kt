@@ -75,7 +75,8 @@ class ItemGuiHandler(private val plugin: JavaPlugin) {
      * @see registerListeningGui
      */
     internal fun dispatchClickEvent(event: InventoryClickEvent) {
-        listeningComponents[event.whoClicked]?.performClick(event)
+        if (event.slot < 0) return //If the player clicks out of the inventory
+        listeningComponents[event.whoClicked]?.performClick(event) //TODO Verhindern, dass Spieler sein Spieler Inventar klickt
     }
 
     /**
