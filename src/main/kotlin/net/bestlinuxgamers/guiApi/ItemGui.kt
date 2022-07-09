@@ -83,6 +83,7 @@ abstract class ItemGui(
      * @see ItemGuiHandler.dispatchClickEvent
      */
     internal fun performClick(event: InventoryClickEvent) {
+        event.isCancelled = true
         click(event, event.slot)
     }
 

@@ -12,7 +12,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent
  */
 class ItemGuiListener(private val handler: ItemGuiHandler) : Listener {
 
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.HIGHEST)
     fun onInventoryClick(event: InventoryClickEvent) {
         handler.dispatchClickEvent(event)
     }
