@@ -42,7 +42,7 @@ class ItemGuiHandler(private val plugin: JavaPlugin) {
      * @param gui Gui, welches Events empfangen soll
      */
     internal fun registerListeningGui(player: Player, gui: ItemGui) {
-        listeningComponents[player] = gui
+        listeningComponents[player] = gui //TODO wenn es Spieler schon gibt, altes Inventar schließen?
     }
 
     /**
@@ -75,8 +75,7 @@ class ItemGuiHandler(private val plugin: JavaPlugin) {
      * @see registerListeningGui
      */
     internal fun dispatchClickEvent(event: InventoryClickEvent) {
-        if (event.slot < 0) return //If the player clicks out of the inventory
-        listeningComponents[event.whoClicked]?.performClick(event) //TODO Verhindern, dass Spieler sein Spieler Inventar klickt
+        listeningComponents[event.whoClicked]?.performClick(event)
     }
 
     /**

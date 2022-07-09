@@ -21,6 +21,7 @@ import org.bukkit.scheduler.BukkitTask
  * @param tickSpeed Schnelligkeit der GUI Updates in Minecraft Ticks
  * @param handler Handler zum Verwalten von Events und zum Starten des render schedulers.
  * Wenn null ist das GUI automatisch statisch!
+ * @param disablePlayerInventory Ob die Items im Spieler Inventar entfernbar sein sollen, während das GUI offen ist
  * @param background Items in Slots, auf denen keine Komponente liegt
  * @see ItemGuiHandler
  */
@@ -32,8 +33,9 @@ abstract class ItemGui(
     private val handler: ItemGuiHandler,
     static: Boolean = false,
     removable: Boolean = false,
-    background: ItemStack? = null
-) : GuiComponent(ReservedSlots(lines, GUI_WIDTH), static, removable, background) {
+    background: ItemStack? = null,
+    private val disablePlayerInventory: Boolean = true,
+    ) : GuiComponent(ReservedSlots(lines, GUI_WIDTH), static, removable, background) {
 
     init {
         if (lines < 1 || lines > 6) throw IllegalArgumentException("Guis must have 1-6 lines")
@@ -83,6 +85,13 @@ abstract class ItemGui(
      * @see ItemGuiHandler.dispatchClickEvent
      */
     internal fun performClick(event: InventoryClickEvent) {
+        if (event.slot < 0) return
+        if (event.clickedInventory != inventory) {
+            if (disablePlayerInventory) {
+                event.isCancelled = true
+            }
+            return
+        }
         event.isCancelled = true
         click(event, event.slot)
     }
