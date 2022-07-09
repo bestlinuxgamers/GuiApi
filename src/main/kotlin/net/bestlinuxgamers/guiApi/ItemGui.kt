@@ -100,8 +100,7 @@ abstract class ItemGui(
      * @param items Items, welche das Inventar beinhalten soll
      */
     private fun updateInventory(items: Array<ItemStack?>) {
-        val inventory =
-            this.inventory ?: throw IllegalStateException("Inventory is not initialized") //TODO evtl. stop/close
+        val inventory = this.inventory ?: throw IllegalStateException("Inventory is not initialized")
 
         inventory.updateItems(items, super.getLastRender())
 
@@ -116,7 +115,7 @@ abstract class ItemGui(
      * @see createInventory
      */
     private fun setInventory(items: Array<ItemStack?>): Inventory {
-        if (inventory == null) throw IllegalStateException("Inventory already set")
+        if (inventory != null) throw IllegalStateException("Inventory already set")
         return createInventory(items).also { inventory = it }
     }
 
