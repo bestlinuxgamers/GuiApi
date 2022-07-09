@@ -29,11 +29,11 @@ abstract class ItemGui(
     private val title: String,
     private val lines: Int,
     private val tickSpeed: Long = 20,
-    private val handler: ItemGuiHandler?,
+    private val handler: ItemGuiHandler,
     static: Boolean = false,
     removable: Boolean = false,
     background: ItemStack? = null
-) : GuiComponent(ReservedSlots(lines, GUI_WIDTH), (static || handler == null), removable, background) {
+) : GuiComponent(ReservedSlots(lines, GUI_WIDTH), static, removable, background) {
 
     init {
         if (lines < 1 || lines > 6) throw IllegalArgumentException("Guis must have 1-6 lines")
@@ -50,7 +50,7 @@ abstract class ItemGui(
     @Suppress("unused")
     fun open() {
         if (inventory != null) return
-        if (!static) handler?.registerListeningGui(player, this)
+        handler.registerListeningGui(player, this)
 
         player.openInventory(setInventory(renderNext()))
         startUpdateScheduler()
@@ -70,7 +70,7 @@ abstract class ItemGui(
      * @see ItemGuiHandler.dispatchCloseEvent
      */
     internal fun performClose() {
-        handler?.unregisterListeningGui(player)
+        handler.unregisterListeningGui(player)
         stopUpdateScheduler()
         inventory = null
         frameCount = 0
@@ -145,7 +145,6 @@ abstract class ItemGui(
      */
     private fun startUpdateScheduler() {
         if ((scheduler != null) || super.static) return
-        if (handler == null) return
 
         scheduler = handler.runTaskTimerAsynchronously(tickSpeed, tickSpeed) { performUpdateTick() }
     }
