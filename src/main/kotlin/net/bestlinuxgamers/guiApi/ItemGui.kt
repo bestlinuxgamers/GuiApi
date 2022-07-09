@@ -4,11 +4,12 @@ import net.bestlinuxgamers.guiApi.component.GuiComponent
 import net.bestlinuxgamers.guiApi.component.util.ReservedSlots
 import net.bestlinuxgamers.guiApi.extensions.updateItems
 import net.bestlinuxgamers.guiApi.extensions.writeItems
+import net.bestlinuxgamers.guiApi.handler.ItemGuiHandler
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
+import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
-import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitTask
 
 /**
@@ -17,20 +18,22 @@ import org.bukkit.scheduler.BukkitTask
  * @param player Spieler, dem das GUI angezeigt werden soll
  * @param title Titel des GUIs
  * @param lines Zeilenanzahl des GUIs
- * @param plugin Plugin, auf welches der Scheduler registriert werden soll
  * @param tickSpeed Schnelligkeit der GUI Updates in Minecraft Ticks
+ * @param handler Handler zum Verwalten von Events und zum Starten des render schedulers.
+ * Wenn null ist das GUI automatisch statisch!
  * @param background Items in Slots, auf denen keine Komponente liegt
+ * @see ItemGuiHandler
  */
 abstract class ItemGui(
     private val player: Player,
     private val title: String,
     private val lines: Int,
-    private val plugin: JavaPlugin, //TODO eventuell nullable machen und bei null alles static
     private val tickSpeed: Long = 20,
+    private val handler: ItemGuiHandler?,
     static: Boolean = false,
     removable: Boolean = false,
     background: ItemStack? = null
-) : GuiComponent(ReservedSlots(lines, GUI_WIDTH), static, removable, background) {
+) : GuiComponent(ReservedSlots(lines, GUI_WIDTH), (static || handler == null), removable, background) {
 
     init {
         if (lines < 1 || lines > 6) throw IllegalArgumentException("Guis must have 1-6 lines")
@@ -47,11 +50,43 @@ abstract class ItemGui(
     @Suppress("unused")
     fun open() {
         if (inventory != null) return
+        if (!static) handler?.registerListeningGui(player, this)
+
         player.openInventory(setInventory(renderNext()))
         startUpdateScheduler()
     }
 
-    //TODO close/stop
+    /**
+     * Schließt das Inventar für den Spieler
+     */
+    @Suppress("unused")
+    fun close() {
+        player.closeInventory()
+    }
+
+    /**
+     * Führt die Schließ-Routine durch.
+     * Sollte nur von einem close Event im [handler] aufgerufen werden!
+     * @see ItemGuiHandler.dispatchCloseEvent
+     */
+    internal fun performClose() {
+        handler?.unregisterListeningGui(player)
+        stopUpdateScheduler()
+        inventory = null
+        frameCount = 0
+        //TODO evtl. open onClose() in GuiComponent
+    }
+
+    /**
+     * Führt die Klick-Routine durch.
+     * Sollte nur von einem klick Event im [handler] aufgerufen werden!
+     * @see ItemGuiHandler.dispatchClickEvent
+     */
+    internal fun performClick(event: InventoryClickEvent) {
+        click(event, event.slot)
+    }
+
+    //render
 
     /**
      * Rendert das nächste Bild
@@ -64,12 +99,15 @@ abstract class ItemGui(
      * @param items Items, welche das Inventar beinhalten soll
      */
     private fun updateInventory(items: Array<ItemStack?>) {
-        val inventory = this.inventory ?: throw IllegalStateException("Inventory is not initialized") //TODO evtl. stop/close
+        val inventory =
+            this.inventory ?: throw IllegalStateException("Inventory is not initialized") //TODO evtl. stop/close
 
         inventory.updateItems(items, super.getLastRender())
 
         player.updateInventory()
     }
+
+    //Inventory
 
     /**
      * Erstellt ein neues Inventar und setzt dieses
@@ -93,11 +131,13 @@ abstract class ItemGui(
         return inventory
     }
 
+    //update scheduler
+
     /**
      * Führt den nächsten update Tick aus
      */
     private fun performUpdateTick() {
-        updateInventory(renderNext()) //TODO was, wenn render länger, als tickSpeed benötigt
+        updateInventory(renderNext()) //TODO was, wenn render länger, als tickSpeed benötigt //TODO Items sync updaten
     }
 
     /**
@@ -105,10 +145,19 @@ abstract class ItemGui(
      */
     private fun startUpdateScheduler() {
         if ((scheduler != null) || super.static) return
+        if (handler == null) return
 
-        scheduler = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, {
-            performUpdateTick()
-        } as Runnable, tickSpeed, tickSpeed)
+        scheduler = handler.runTaskTimerAsynchronously(tickSpeed, tickSpeed) { performUpdateTick() }
+    }
+
+    /**
+     * Stoppt den update Tick scheduler
+     * @see startUpdateScheduler
+     */
+    private fun stopUpdateScheduler() {
+        if (!static) {
+            scheduler?.cancel().also { scheduler = null }
+        }
     }
 
     companion object {

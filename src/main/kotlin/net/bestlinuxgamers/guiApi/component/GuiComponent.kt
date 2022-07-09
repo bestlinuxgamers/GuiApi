@@ -39,7 +39,7 @@ abstract class GuiComponent(
 
     //init
     init {
-        setUp() //TODO evtl. erst beim start vom rendern aufrufen - muss auch vor erster Änderung (z.B. durch setComponent()) ausgeführt werden
+        setUp() //TODO evtl. erst beim start vom rendern aufrufen - muss auch vor erster Änderung (z.B. durch setComponent()) ausgeführt werden - kann in ItemGui benutzt werden
     }
 
     //hook/lock
@@ -158,6 +158,8 @@ abstract class GuiComponent(
     fun removeAllComponents() {
         components.forEachIndexed { index, _ -> components[index] = null}
     }
+
+    //component getters
 
     /**
      * Methode zum Suchen einer Komponente eines Typs
