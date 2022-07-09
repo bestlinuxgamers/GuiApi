@@ -20,7 +20,6 @@ import org.bukkit.inventory.ItemStack
 abstract class GuiComponent(
     val reservedSlots: ReservedSlots,
     val static: Boolean = false, //TODO dynamic (erst bei Änderung in Komponenten rendern)
-    val removable: Boolean = false, //TODO
     val renderFallback: ItemStack? = null
 ) {
 
@@ -220,12 +219,13 @@ abstract class GuiComponent(
     }
 
     //click
-    //TODO protection (Items herausnehmen interaktiv blockieren) - Siehe Konstruktor
+    //TODO protection (Items herausnehmen interaktiv blockieren)
 
     /**
      * Setzt die Aktion, welche bei einem Klick ausgeführt wird
      * @param clickAction Aktion
      */
+    @Suppress("unused")
     fun setClickable(clickAction: (event: InventoryClickEvent, clickedComponent: Int) -> Unit) {
         this.clickAction = clickAction
     }

@@ -109,7 +109,8 @@ class ReservedSlots(reservedSlotsArr2D: Array<Array<Boolean>>) {
      * @param position Position (y = Zeile, x = Spalte)
      * @return Index der [position]
      * @throws ArrayIndexOutOfBoundsException Wenn die [position] im Speicher nicht existiert.
-     * (Zeile y wurde nicht gesetzt oder Zeile y hat weniger als x reservierte Spalten)
+     * @throws SlotNotReservedException Wenn der Slot nicht reserviert ist
+     * @see getReservedLineIndexOfLineIndex
      */
     fun getReservedIndexOfPos(position: Position2D): Int {
         if (position.x <= 0) throw ArrayIndexOutOfBoundsException("Row can't be negative!")

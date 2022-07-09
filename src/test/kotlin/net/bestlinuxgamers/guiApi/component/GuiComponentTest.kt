@@ -96,7 +96,7 @@ internal object GuiComponentTest {
     }
 
     @Test
-    fun testSetItem() {
+    fun testSetComponent() {
         val reserved = ReservedSlots(
             arrayOf(
                 arrayOf(false, true),

@@ -32,10 +32,9 @@ abstract class ItemGui(
     private val tickSpeed: Long = 20,
     private val handler: ItemGuiHandler,
     static: Boolean = false,
-    removable: Boolean = false,
     background: ItemStack? = null,
     private val disablePlayerInventory: Boolean = true,
-) : GuiComponent(ReservedSlots(lines, GUI_WIDTH), static, removable, background) {
+) : GuiComponent(ReservedSlots(lines, GUI_WIDTH), static, background) {
 
     init {
         if (lines < 1 || lines > 6) throw IllegalArgumentException("Guis must have 1-6 lines")

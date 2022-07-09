@@ -5,4 +5,4 @@ package net.bestlinuxgamers.guiApi.component.util
  * y = vertikal
  * x = horizontal
  */
-data class Position2D(val x: Int, val y: Int) //TODO aus der Klasse verschieben
+data class Position2D(val x: Int, val y: Int)
