@@ -35,7 +35,7 @@ abstract class ItemGui(
     removable: Boolean = false,
     background: ItemStack? = null,
     private val disablePlayerInventory: Boolean = true,
-    ) : GuiComponent(ReservedSlots(lines, GUI_WIDTH), static, removable, background) {
+) : GuiComponent(ReservedSlots(lines, GUI_WIDTH), static, removable, background) {
 
     init {
         if (lines < 1 || lines > 6) throw IllegalArgumentException("Guis must have 1-6 lines")
@@ -107,11 +107,12 @@ abstract class ItemGui(
     /**
      * Aktualisiert das Inventar. Nur Items, welche sich verändert haben, werden verändert.
      * @param items Items, welche das Inventar beinhalten soll
+     * @param lastRender Letztes Render Ergebnis, da zum Zeitpunkt des aufrufs bereits das neue Frame gerendert wurde
      */
-    private fun updateInventory(items: Array<ItemStack?>) {
+    private fun updateInventory(items: Array<ItemStack?>, lastRender: Array<ItemStack?>?) {
         val inventory = this.inventory ?: throw IllegalStateException("Inventory is not initialized")
 
-        inventory.updateItems(items, super.getLastRender())
+        inventory.updateItems(items, lastRender)
 
         player.updateInventory()
     }
@@ -146,7 +147,11 @@ abstract class ItemGui(
      * Führt den nächsten update Tick aus
      */
     private fun performUpdateTick() {
-        updateInventory(renderNext()) //TODO was, wenn render länger, als tickSpeed benötigt //TODO Items sync updaten
+        val lastRender = super.getLastRender()
+        updateInventory(
+            renderNext(),
+            lastRender
+        ) //TODO was, wenn render länger, als tickSpeed benötigt //TODO Items sync updaten
     }
 
     /**
