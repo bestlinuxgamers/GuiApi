@@ -51,17 +51,34 @@ abstract class GuiComponent(
      */
     private fun hook(guiComponent: GuiComponent) {
         if (isLocked()) throw ComponentAlreadyInUseException()
-        if (guiComponent === this) throw ComponentRekursionException()
-        val guiComponentHook = guiComponent.hook
+        if (testForRekursion(guiComponent)) throw ComponentRekursionException()
+        hook = guiComponent
+    }
+
+    /**
+     * Testet, ob mit einer Komponente eine Rekursion entstehen würde
+     * @param component Komponente, mit der auf eine Rekursion getestet werden soll
+     * @return Ob eine Rekursion entsteht
+     */
+    private fun testForRekursion(component: GuiComponent): Boolean {
+        if (component === this) return true
+        val guiComponentHook = component.hook
         if (guiComponentHook != null) {
             var lastComponent: GuiComponent? = guiComponentHook
             while (lastComponent != null) {
-                if (lastComponent === this) throw ComponentRekursionException()
+                if (lastComponent === this) return true
                 lastComponent = lastComponent.hook
             }
         }
+        return false
+    }
 
-        hook = guiComponent
+    /**
+     * Entfernt den hook der Komponente
+     * @see hook
+     */
+    private fun unHook() {
+        hook = null
     }
 
     /**
@@ -115,7 +132,7 @@ abstract class GuiComponent(
      * @see hook
      */
     fun setComponent(component: GuiComponent, start: Int) {
-        component.hook(this) //TODO erst nach am Ende hooken
+        if (component.isLocked()) throw ComponentAlreadyInUseException()
 
         val startPosition = reservedSlots.getPosOfReservedIndex(start)
         val componentReservedMapped: ArrayList<Int> = ArrayList()
@@ -134,6 +151,8 @@ abstract class GuiComponent(
         componentReservedMapped.forEach {
             if (components[it] != null) throw ComponentOverlapException()
         }
+
+        component.hook(this)
         componentReservedMapped.forEachIndexed { index, mappedSlot ->
             components[mappedSlot] = ComponentIndexMap(component, index)
         }
@@ -144,6 +163,9 @@ abstract class GuiComponent(
      * @param component Komponente
      */
     fun removeComponent(component: GuiComponent) {
+        if (!getComponents().contains(component)) return
+
+        component.unHook()
         components.forEachIndexed { index, componentMap ->
             if (componentMap?.component == component) {
                 components[index] = null
@@ -155,7 +177,7 @@ abstract class GuiComponent(
      * Entfernt alle Komponenten
      */
     fun removeAllComponents() {
-        components.forEachIndexed { index, _ -> components[index] = null}
+        getComponents().forEach { removeComponent(it) }
     }
 
     //component getters
