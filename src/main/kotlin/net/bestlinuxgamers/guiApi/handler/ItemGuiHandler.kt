@@ -42,7 +42,8 @@ class ItemGuiHandler(private val plugin: JavaPlugin) {
      * @param gui Gui, welches Events empfangen soll
      */
     internal fun registerListeningGui(player: Player, gui: ItemGui) {
-        listeningComponents[player] = gui //TODO wenn es Spieler schon gibt, altes Inventar schließen?
+        listeningComponents[player]?.performClose()
+        listeningComponents[player] = gui
     }
 
     /**
