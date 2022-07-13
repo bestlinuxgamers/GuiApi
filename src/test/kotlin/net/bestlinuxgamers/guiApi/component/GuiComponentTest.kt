@@ -42,6 +42,24 @@ internal object GuiComponentTest {
     }
 
     @Test
+    fun testUnHook() {
+        val instance1 = ResizableTestComponent(1, 1)
+        val instance2 = ResizableTestComponent(1, 1)
+        val comp1 = ResizableTestComponent(1, 1)
+        val comp2 = ResizableTestComponent(1, 1)
+
+        instance1.setComponent(comp1, 0)
+        instance1.removeComponent(comp1)
+        instance2.setComponent(comp1, 0)
+        Assertions.assertThrows(ComponentAlreadyInUseException::class.java) { instance1.setComponent(comp1, 0) }
+        instance1.setComponent(comp2, 0)
+        instance2.removeComponent(comp1)
+        instance1.removeComponent(comp2)
+        instance1.setComponent(comp1, 0)
+        instance2.setComponent(comp2, 0)
+    }
+
+    @Test
     fun testRekursion() {
         val instance1 = ResizableTestComponent(1, 1) //hook instance4
 
