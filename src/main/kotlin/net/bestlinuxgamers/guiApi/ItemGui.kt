@@ -37,7 +37,7 @@ abstract class ItemGui(
 ) : GuiComponent(ReservedSlots(lines, GUI_WIDTH), static, background) {
 
     init {
-        if (lines < 1 || lines > 6) throw IllegalArgumentException("Guis must have 1-6 lines")
+        if (lines < 1 || lines > 6) throw IllegalArgumentException("Guis must have 1-6 lines") //TODO Gui, welches Spielerinventar mit verwendet (max 10 Zeilen)
         super.lock()
     }
 

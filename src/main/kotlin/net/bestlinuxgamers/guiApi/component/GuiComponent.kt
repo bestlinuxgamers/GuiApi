@@ -13,7 +13,6 @@ import org.bukkit.inventory.ItemStack
  * @param static Ob die Komponente nur einmal gerendert werden soll.
  * Dies wird empfohlen, wenn die Komponente keine Animationen o.ä. enthält.
  * Beachte: [beforeRender] wird nur einmal aufgerufen!
- * @param removable Ob Items aus dem Inventar entfernbar sein sollen.
  * @param renderFallback Item, welches auf reservierte aber nicht gerenderte Slots gesetzt wird
  */
 @Suppress("MemberVisibilityCanBePrivate")
@@ -152,7 +151,7 @@ abstract class GuiComponent(
             if (components[it] != null) throw ComponentOverlapException()
         }
 
-        component.hook(this)
+        component.hook(this) //TODO chekcs evtl. am Anfang der Methode, hooken hier
         componentReservedMapped.forEachIndexed { index, mappedSlot ->
             components[mappedSlot] = ComponentIndexMap(component, index)
         }

@@ -27,9 +27,10 @@ class NoReservedSlotsException : IllegalArgumentException()
  * Dieser Fehler wird geworfen, wenn versucht wird einen nicht reservierten Slot zu benutzen
  */
 class SlotNotReservedException : ArrayIndexOutOfBoundsException {
+    @Suppress("unused")
     constructor() : super()
     constructor(message: String) : super(message)
 }
 
 
-//TODO eigene ArrayIndexOutOfBoundsException
+//TODO eigene ComponentOverlapException/ArrayIndexOutOfBoundsException mit grafischer Anzeige des Fehlers
