@@ -1,4 +1,4 @@
-package net.bestlinuxgamers.guiApi.handler
+package net.bestlinuxgamers.guiApi.event
 
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -8,17 +8,20 @@ import org.bukkit.event.inventory.InventoryCloseEvent
 
 /**
  * Klasse zum Empfangen von Gui-Spezifischen Events
- * @param handler Handler, an welchen die Events weitergeleitet werden
+ * @param dispatcher Handler, an welchen die Events weitergeleitet werden
  */
-class ItemGuiListener(private val handler: ItemGuiHandler) : Listener {
+@OptIn(EventDispatcherOnly::class)
+class MinecraftGuiListener(private val dispatcher: MinecraftGuiEventDispatcher) : Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     fun onInventoryClick(event: InventoryClickEvent) {
-        handler.dispatchClickEvent(event)
+        dispatcher.dispatchClickEvent(event)
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     fun onInventoryClose(event: InventoryCloseEvent) {
-        handler.dispatchCloseEvent(event)
+        dispatcher.dispatchCloseEvent(event)
     }
+
+    //TODO InventoryInteractEvent
 }

@@ -1,6 +1,7 @@
 package net.bestlinuxgamers.guiApi.component
 
 import net.bestlinuxgamers.guiApi.component.util.*
+import net.bestlinuxgamers.guiApi.event.EventDispatcherOnly
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemStack
 
@@ -117,6 +118,8 @@ abstract class GuiComponent(
      */
     abstract fun beforeRender(frame: Long)
 
+    //TODO fun addBeforeRender((Int) -> Unit) zum Hinzufügen von Aktionen von außen. Dafür evtl. Liste an lambdas, eine ist immer {setUp()}
+
     //editing
 
     /**
@@ -225,7 +228,7 @@ abstract class GuiComponent(
      */
     internal open fun render(frame: Long): Array<ItemStack?> {
         val renderResults: MutableMap<GuiComponent, RenderResultDistributor> = mutableMapOf()
-        val output: Array<ItemStack?> = Array(reservedSlots.totalReserved) { renderFallback }
+        val output: Array<ItemStack?> = Array(reservedSlots.totalReserved) { renderFallback } //TODO render in lambda des Konstruktors des Arrays
 
         components.forEachIndexed { index, it ->
             if (it != null) {
@@ -258,6 +261,7 @@ abstract class GuiComponent(
      * Beachte: Der Index des Inventars geht über die Indexe aller Teilkomponenten.
      * Daher geht der Index einer Komponente über einen Teil des Gesamtindexes (vom Inventar).
      */
+    @EventDispatcherOnly
     internal open fun click(event: InventoryClickEvent, clickedSlot: Int) {
         clickAction(event, clickedSlot)
         sendClickToChild(event, clickedSlot)
@@ -269,6 +273,7 @@ abstract class GuiComponent(
      * @param clickedSlot Slot dieser Komponente, welcher angeklickt wurde.
      * @see click
      */
+    @EventDispatcherOnly
     private fun sendClickToChild(event: InventoryClickEvent, clickedSlot: Int) {
         components[clickedSlot]?.let { it.component.click(event, it.index) }
     }
