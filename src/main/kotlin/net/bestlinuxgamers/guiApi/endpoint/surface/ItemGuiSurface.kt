@@ -15,13 +15,13 @@ class ItemGuiSurface(
     private val title: String,
     lines: Int,
     eventDispatcher: MinecraftGuiEventDispatcher
-) : MinecraftGuiSurface(player, lines, eventDispatcher) {
+) : ListeningMinecraftGuiSurface(player, lines, eventDispatcher) {
 
     init {
         if (lines < 1 || lines > MAX_GUI_SIZE) throw IllegalArgumentException("Guis must have 1-$MAX_GUI_SIZE lines")
     }
 
-    private var inventory: Inventory? = null
+    override var inventory: Inventory? = null
 
     override fun isOpened(): Boolean = inventory != null
 

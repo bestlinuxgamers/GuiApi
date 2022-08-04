@@ -16,7 +16,7 @@ abstract class ComponentEndpoint(
     private val tickSpeed: Long = 20,
     static: Boolean = false,
     background: ItemStack? = null
-) : GuiComponent(surface.generateReserved(), static, background) {
+) : GuiComponent(surface.generateReserved(), static, background), EndpointEventDispatcher {
 
     private var frameCount: Long = 0
     private var scheduler: BukkitTask? = null
@@ -26,6 +26,7 @@ abstract class ComponentEndpoint(
         surface.registerEndpoint(this) //TODO evtl. erst in open
     }
 
+    @Suppress("unused")
     fun open() {
         if (surface.isOpened()) return
 
@@ -38,13 +39,13 @@ abstract class ComponentEndpoint(
     //Event
 
     @EventDispatcherOnly
-    internal fun performClose() {
+    override fun performClose() {
         stopUpdateScheduler()
         surface.performClose()
     }
 
     @EventDispatcherOnly
-    internal fun performClick(clickedSlot: Int, event: InventoryClickEvent) {
+    override fun performClick(clickedSlot: Int, event: InventoryClickEvent) {
         if (clickedSlot < 0 || clickedSlot >= reservedSlots.totalReserved) return
         click(event, clickedSlot)
     }

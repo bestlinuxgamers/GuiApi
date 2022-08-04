@@ -6,24 +6,25 @@ import net.bestlinuxgamers.guiApi.extensions.updateItems
 import net.bestlinuxgamers.guiApi.extensions.writeItems
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
+import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.PlayerInventory
 
 class PlayerInventorySurface(player: Player, lines: Int, eventDispatcher: MinecraftGuiEventDispatcher) :
-    MinecraftGuiSurface(player, lines, eventDispatcher) {
+    ListeningMinecraftGuiSurface(player, lines, eventDispatcher) {
 
     init {
         if (lines < 1 || lines > PLAYER_INV_SIZE) throw IllegalArgumentException("Inventorys must have 1-$PLAYER_INV_SIZE lines")
     }
 
-    private var playerInventory: PlayerInventory? = null
+    override var inventory: Inventory? = null //PlayerInventory
     private var inventoryItems: Array<ItemStack?>? = null
 
-    override fun isOpened(): Boolean = playerInventory != null
+    override fun isOpened(): Boolean = inventory != null
 
     override fun setupSurface(items: Array<ItemStack?>) {
         val inventory = player.inventory
-        playerInventory = inventory
+        this.inventory = inventory
         inventoryItems = Array(inventory.size) { inventory.getItem(it) }
         inventory.writeItems(items)
     }
@@ -31,7 +32,7 @@ class PlayerInventorySurface(player: Player, lines: Int, eventDispatcher: Minecr
 
     @SurfaceManagerOnly
     override fun updateItems(items: Array<ItemStack?>, lastItems: Array<ItemStack?>?) {
-        playerInventory?.updateItems(items, lastItems) ?: throw IllegalStateException("Inventory is not initialized")
+        inventory?.updateItems(items, lastItems) ?: throw IllegalStateException("Inventory is not initialized")
     }
 
     @SurfaceManagerOnly
@@ -43,10 +44,10 @@ class PlayerInventorySurface(player: Player, lines: Int, eventDispatcher: Minecr
 
     @EventDispatcherOnly
     override fun performClose() {
-        inventoryItems?.let { playerInventory?.writeItems(it) }
+        inventoryItems?.let { inventory?.writeItems(it) }
 
         inventoryItems = null
-        playerInventory = null
+        inventory = null
     }
 
     companion object {

@@ -1,7 +1,7 @@
 package net.bestlinuxgamers.guiApi.endpoint.surface
 
 import net.bestlinuxgamers.guiApi.component.util.ReservedSlots
-import net.bestlinuxgamers.guiApi.endpoint.ComponentEndpoint
+import net.bestlinuxgamers.guiApi.endpoint.EndpointEventDispatcher
 import net.bestlinuxgamers.guiApi.event.EventDispatcherOnly
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
@@ -9,15 +9,15 @@ import org.bukkit.inventory.ItemStack
 
 abstract class GuiSurface {
 
-    private val registeredEndpoints: MutableSet<ComponentEndpoint> = mutableSetOf()
+    private val registeredEndpoints: MutableSet<EndpointEventDispatcher> = mutableSetOf()
 
     fun getRegisteredEndpoints() = registeredEndpoints.toSet()
 
-    internal fun registerEndpoint(endpoint: ComponentEndpoint) {
+    internal fun registerEndpoint(endpoint: EndpointEventDispatcher) {
         registeredEndpoints.add(endpoint)
     }
 
-    private fun forEachEndpoint(action: (ComponentEndpoint) -> Unit) = registeredEndpoints.forEach(action)
+    private fun forEachEndpoint(action: (EndpointEventDispatcher) -> Unit) = registeredEndpoints.forEach(action)
 
     //open
 
@@ -43,7 +43,8 @@ abstract class GuiSurface {
     @SurfaceManagerOnly
     abstract fun close()
 
-    internal abstract fun generateReserved(): ReservedSlots
+    @SurfaceManagerOnly
+    abstract fun generateReserved(): ReservedSlots
 
     internal abstract fun getComponentIndex(event: InventoryClickEvent): Int
 
