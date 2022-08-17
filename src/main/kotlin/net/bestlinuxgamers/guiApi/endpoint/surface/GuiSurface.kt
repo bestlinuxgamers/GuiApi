@@ -17,25 +17,19 @@ abstract class GuiSurface {
         registeredEndpoints.add(endpoint)
     }
 
-    private fun forEachEndpoint(action: (ComponentEndpoint) -> Unit) = registeredEndpoints.forEach(action)
+    internal fun forEachEndpoint(action: (ComponentEndpoint) -> Unit) = registeredEndpoints.forEach(action)
 
     //open
 
     @SurfaceManagerOnly
-    fun open(items: Array<ItemStack?>) {
+    open fun open(items: Array<ItemStack?>) {
         if (isOpened()) return
         startListening()
         setupSurface(items)
     }
 
-    internal abstract fun isOpened(): Boolean
-
-    /**
-     * Erstellt, speichert und öffnet ein Surface
-     * @param items Items, welche das Surface beinhalten soll
-     */
-    internal abstract fun setupSurface(items: Array<ItemStack?>)
-
+    @SurfaceManagerOnly
+    abstract fun isOpened(): Boolean
 
     @SurfaceManagerOnly
     abstract fun updateItems(items: Array<ItemStack?>, lastItems: Array<ItemStack?>?)
@@ -43,9 +37,13 @@ abstract class GuiSurface {
     @SurfaceManagerOnly
     abstract fun close()
 
-    internal abstract fun generateReserved(): ReservedSlots
+    /**
+     * Erstellt, speichert und öffnet ein Surface
+     * @param items Items, welche das Surface beinhalten soll
+     */
+    internal abstract fun setupSurface(items: Array<ItemStack?>)
 
-    internal abstract fun getComponentIndex(event: InventoryClickEvent): Int
+    internal abstract fun generateReserved(): ReservedSlots
 
     internal abstract fun startListening()
 
@@ -57,15 +55,10 @@ abstract class GuiSurface {
     //dispatchers
 
     @EventDispatcherOnly
-    internal fun dispatchClickEvent(event: InventoryClickEvent) {
-        val clickedSlot = getComponentIndex(event)
-        forEachEndpoint { it.performClick(clickedSlot, event) }
-    }
+    abstract fun dispatchClickEvent(event: InventoryClickEvent)
 
     @EventDispatcherOnly
-    internal fun dispatchCloseEvent(event: InventoryCloseEvent) {
-        forEachEndpoint { it.performClose() }
-    }
+    abstract fun dispatchCloseEvent(event: InventoryCloseEvent)
 
 
 }
