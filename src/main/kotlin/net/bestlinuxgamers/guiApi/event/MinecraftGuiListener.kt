@@ -13,7 +13,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent
 @OptIn(EventDispatcherOnly::class)
 class MinecraftGuiListener(private val dispatcher: MinecraftGuiEventDispatcher) : Listener {
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGHEST) //TODO eins high (fürs canceln) und eins Monitor für endgültiges Resultat
     fun onInventoryClick(event: InventoryClickEvent) {
         dispatcher.dispatchClickEvent(event)
     }
