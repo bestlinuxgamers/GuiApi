@@ -26,7 +26,8 @@ class MinecraftGuiEventDispatcher(private val eventRegistration: EventRegisterPr
     //register
 
     internal fun registerListening(player: Player, surface: MinecraftGuiSurface) {
-        listening[player]?.close() //TODO close nicht richtig, da so closeEvent aufgerufen
+        @OptIn(EventDispatcherOnly::class)
+        listening[player]?.initiateClose() //TODO system zur verwaltung von bereits geöffneten Uis (evtl. schließen und wieder öffnen)
         listening[player] = surface
     }
 

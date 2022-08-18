@@ -23,6 +23,7 @@ class ItemGuiSurface(
 
     private var inventory: Inventory? = null
 
+    @SurfaceManagerOnly
     override fun isOpened(): Boolean = inventory != null
 
     override fun setupSurface(items: Array<ItemStack?>) {
@@ -52,11 +53,16 @@ class ItemGuiSurface(
         player.closeInventory()
     }
 
-    override fun getComponentIndex(event: InventoryClickEvent): Int = event.slot
+    override fun getComponentIndex(event: InventoryClickEvent): Int { //TODO -1 krass unschön
+        return if (event.clickedInventory == inventory) {
+            event.slot
+        } else {
+            -1
+        }
+    }
 
     @EventDispatcherOnly
     override fun performClose() {
-        stopListening()
         inventory = null
     }
 

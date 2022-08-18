@@ -50,6 +50,11 @@ abstract class GuiSurface {
     internal abstract fun stopListening()
 
     @EventDispatcherOnly
+    internal fun initiateClose() {
+        stopListening()
+        performClose()
+    }
+
     internal abstract fun performClose()
 
     //dispatchers

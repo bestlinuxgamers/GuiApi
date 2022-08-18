@@ -40,7 +40,7 @@ abstract class ComponentEndpoint(
     @EventDispatcherOnly
     internal fun performClose() {
         stopUpdateScheduler()
-        surface.performClose()
+        surface.initiateClose()
     }
 
     @EventDispatcherOnly
