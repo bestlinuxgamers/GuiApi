@@ -8,7 +8,7 @@ plugins {
     signing
 }
 
-group = "net.bestlinuxgamers"
+group = "net.bestlinuxgamers.guiapi"
 
 reckon {
     stages("beta", "rc", "final")
