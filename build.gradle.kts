@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("jvm") version "1.7.0"
     id("org.ajoberstar.reckon") version "0.16.1"
+    id("org.jetbrains.dokka") version "1.7.10"
 }
 
 group = "net.bestlinuxgamers"
@@ -31,10 +32,33 @@ dependencies {
     testImplementation(files("./testDependencies/spigot-1.16.5.jar"))
 }
 
+//task settings
+
+val targetCompatibility = JavaVersion.VERSION_1_8.toString()
+
+tasks.withType<KotlinCompile> {
+    kotlinOptions.jvmTarget = targetCompatibility
+}
+
+tasks.withType<JavaCompile> {
+    sourceCompatibility = JavaVersion.current().toString()
+    targetCompatibility = targetCompatibility
+}
+
 tasks.test {
     useJUnitPlatform()
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
+//custom tasks
+
+tasks.register<org.gradle.jvm.tasks.Jar>("javadocJar") {
+    group = "documentation"
+    archiveClassifier.set("javadoc")
+    from(tasks.withType<org.jetbrains.dokka.gradle.DokkaTask>()["dokkaHtml"].outputDirectory)
+}
+
+tasks.register<org.gradle.jvm.tasks.Jar>("sourcesJar") {
+    group = "documentation"
+    archiveClassifier.set("sources")
+    from(project.sourceSets["main"].allSource)
 }
