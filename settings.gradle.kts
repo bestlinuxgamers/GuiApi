@@ -1,3 +1,3 @@
 
-rootProject.name = "GuiApi"
+rootProject.name = "gui-api"
 
