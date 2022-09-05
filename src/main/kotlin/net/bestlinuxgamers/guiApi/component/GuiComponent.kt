@@ -151,10 +151,10 @@ abstract class GuiComponent(
             }
         }
         componentReservedMapped.forEach {
-            if (components[it] != null) throw ComponentOverlapException()
+            if (components[it] != null) throw ComponentOverlapException() //TODO genaue Fehlermeldung
         }
 
-        component.hook(this) //TODO chekcs evtl. am Anfang der Methode, hooken hier
+        component.hook(this)
         componentReservedMapped.forEachIndexed { index, mappedSlot ->
             components[mappedSlot] = ComponentIndexMap(component, index)
         }

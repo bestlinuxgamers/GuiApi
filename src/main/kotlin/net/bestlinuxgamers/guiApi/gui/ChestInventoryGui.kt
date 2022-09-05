@@ -2,33 +2,37 @@ package net.bestlinuxgamers.guiApi.gui
 
 import net.bestlinuxgamers.guiApi.endpoint.ComponentEndpoint
 import net.bestlinuxgamers.guiApi.endpoint.surface.MinecraftGuiSurface
-import net.bestlinuxgamers.guiApi.endpoint.surface.display.PlayerInventoryDisplay
+import net.bestlinuxgamers.guiApi.endpoint.surface.display.ChestInventoryDisplay
 import net.bestlinuxgamers.guiApi.event.MinecraftGuiEventDispatcher
 import net.bestlinuxgamers.guiApi.provider.SchedulerProvider
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 
 /**
- * Vollständiges Minecraft-Spielerinventar GUI (Hot-bar und Menü mit Tastendruck auf "E")
+ * Vollständiges Minecraft-Kisten-Inventar
  * @param player Spieler, dem das Inventar gehört
+ * @param title Titel des Inventars
+ * @param lines Zeilen des Inventars (1 - 6)
  * @param eventDispatcher  Der Event-Manager für Events der Oberfläche
  * @param schedulerProvider Klasse zum registrieren von Minecraft schedulern
  * @param tickSpeed Die Schnelligkeit der GUI render Updates in Minecraft Ticks
  * @param static Ob die Komponente nur initial gerendert werden soll.
  * @param background Items für Slots, auf denen keine Komponente liegt
- * @see PlayerInventoryDisplay
+ * @see ChestInventoryDisplay
  * @see ComponentEndpoint
  * @see MinecraftGuiSurface
  */
-abstract class PlayerInventoryGui(
+abstract class ChestInventoryGui(
     player: Player,
+    title: String,
+    lines: Int,
     eventDispatcher: MinecraftGuiEventDispatcher,
     schedulerProvider: SchedulerProvider,
     tickSpeed: Long = 20,
     static: Boolean = false,
     background: ItemStack? = null
 ) : ComponentEndpoint(
-    MinecraftGuiSurface(PlayerInventoryDisplay(player), eventDispatcher),
+    MinecraftGuiSurface(ChestInventoryDisplay(player, title, lines), eventDispatcher),
     schedulerProvider,
     tickSpeed,
     static,
