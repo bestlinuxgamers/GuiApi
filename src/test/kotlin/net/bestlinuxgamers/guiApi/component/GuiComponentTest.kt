@@ -2,7 +2,8 @@ package net.bestlinuxgamers.guiApi.component
 
 import net.bestlinuxgamers.guiApi.component.essentials.ItemComponent
 import net.bestlinuxgamers.guiApi.component.util.*
-import net.bestlinuxgamers.guiApi.templates.MinecraftItemTest
+import net.bestlinuxgamers.guiApi.templates.server.MinecraftItemExtension
+import net.bestlinuxgamers.guiApi.templates.server.MinecraftServerMockObj
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 import org.junit.jupiter.api.Assertions
@@ -14,7 +15,7 @@ internal object GuiComponentTest {
     @BeforeAll
     @JvmStatic
     fun initServer() {
-        MinecraftItemTest.mockServer()
+        MinecraftServerMockObj.apply { addExtension(MinecraftItemExtension()) }.apply()
     }
 
     @Test
