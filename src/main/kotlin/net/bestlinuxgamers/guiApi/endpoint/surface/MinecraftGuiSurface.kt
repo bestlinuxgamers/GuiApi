@@ -43,15 +43,17 @@ open class MinecraftGuiSurface(
      */
     private fun registerEvents(endpoint: ComponentEndpoint) {
         registerRegistration(
-            EventRegistration(
+            ClickEventRegistration(
                 display.clickEventIdentifier,
                 @OptIn(EventDispatcherOnly::class)
-                LambdaEventAction { endpoint.performClick(display.getComponentSlot(it), it) })
+                LambdaEventAction { endpoint.performClick(display.getComponentSlot(it), it) },
+            )
         )
         registerRegistration(
-            EventRegistration(
+            CloseEventRegistration(
                 display.closeActionEventIdentifier,
-                @OptIn(EventDispatcherOnly::class) LambdaEventAction { endpoint.performClose() })
+                @OptIn(EventDispatcherOnly::class) LambdaEventAction { endpoint.performClose() },
+            )
         )
         display.eventRegistrations.forEach { registerRegistration(it) }
     }

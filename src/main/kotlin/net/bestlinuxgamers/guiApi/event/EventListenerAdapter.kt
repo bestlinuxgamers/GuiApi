@@ -29,8 +29,8 @@ abstract class EventListenerAdapter<T : Event> : Listener {
      */
     @Suppress("UNCHECKED_CAST")
     internal fun addRegistration(registration: EventRegistration<out EventListenerAdapter<out Event>, out Event>) {
-        if (registration.identifier.adapterClass != this::class)
-            throw IllegalArgumentException("The provided EventRegistration is only registerable for the ${registration.identifier.adapterClass.simpleName} Adapter!")
+        if (registration.adapterClass != this::class)
+            throw IllegalArgumentException("The provided EventRegistration is only registerable for the ${registration.adapterClass.simpleName} Adapter!")
         registrations.add(registration as EventRegistration<out EventListenerAdapter<T>, T>)
     }
 

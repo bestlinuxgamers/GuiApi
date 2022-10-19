@@ -6,16 +6,13 @@ import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.inventory.Inventory
-import kotlin.reflect.KClass
 
 /**
  * Klasse zum Identifizieren von Events.
- * @param adapterClass Klasse des Adapters [T].
- * Diese wird zum zuordnen einer Instanz dieser Klasse zu dem dazugehörigen [EventListenerAdapter] benötigt.
- * @param T Adapter, dessen Events identifiziert werden sollen
+ * Diese wird zum Zuordnen einer Instanz dieser Klasse zu dem dazugehörigen [EventListenerAdapter] benötigt.
  * @param E Event-Typ, der identifiziert werden soll
  */
-abstract class EventIdentifier<T : EventListenerAdapter<E>, E : Event>(val adapterClass: KClass<T>) { //TODO Adapter verschieben nach EventRegistration
+abstract class EventIdentifier<E : Event> {
     /**
      * Identifiziert ein Event
      * @param event Event, welches identifiziert werden soll
@@ -30,11 +27,9 @@ abstract class EventIdentifier<T : EventListenerAdapter<E>, E : Event>(val adapt
  * Identifiziert ein Event anhand von mehreren anderen [EventIdentifier].
  * Events werden als zugehörig bewertet, sobald eines der angegeben [EventIdentifier.isEvent] true zurückgibt.
  * @param identifiers Alle Identifier, die vereint werden sollen
- * @param T Typ des Adapters, dessen [EventIdentifier] vereint werden sollen
  * @param E Typ des Events, den die [identifiers] identifizieren müssen
  */
-class MergedIdentifiersIdentifier<T : EventListenerAdapter<E>, E : Event>(private val identifiers: Set<EventIdentifier<T, E>>) :
-    EventIdentifier<T, E>(identifiers.first().adapterClass) {
+class MergedIdentifiersIdentifier<E : Event>(private val identifiers: Set<EventIdentifier<E>>) : EventIdentifier<E>() {
     override fun isEvent(event: E): Boolean = identifiers.any { it.isEvent(event) }
 }
 
@@ -43,11 +38,10 @@ class MergedIdentifiersIdentifier<T : EventListenerAdapter<E>, E : Event>(privat
 /**
  * [EventIdentifier] für [InventoryClickEvent]s
  */
-abstract class ClickEventIdentifier :
-    EventIdentifier<ClickEventListenerAdapter, InventoryClickEvent>(ClickEventListenerAdapter::class)
+abstract class ClickEventIdentifier : EventIdentifier<InventoryClickEvent>()
 
 /**
- * Klasse zum identifizieren, ob ein Event einer Gui Aktion zugehörig ist.
+ * Klasse zum Identifizieren, ob ein Event einer Gui Aktion zugehörig ist.
  * @param player Spieler, auf den geprüft wird
  * @param inventory Inventar, welches benutzt werden soll
  */
@@ -62,11 +56,10 @@ class GuiClickEventIdentifier(private val player: Player, private val inventory:
 /**
  * [EventIdentifier] für [InventoryCloseEvent]s
  */
-abstract class CloseEventIdentifier :
-    EventIdentifier<CloseEventListenerAdapter, InventoryCloseEvent>(CloseEventListenerAdapter::class)
+abstract class CloseEventIdentifier : EventIdentifier<InventoryCloseEvent>()
 
 /**
- * Klasse zum identifizieren, ob ein Event einer Gui Aktion zugehörig ist.
+ * Klasse zum Identifizieren, ob ein Event einer Gui Aktion zugehörig ist.
  * @param player Spieler, auf den geprüft wird
  * @param inventory Inventar, welches benutzt werden soll
  */
@@ -80,11 +73,10 @@ class GuiCloseEventIdentifier(private val player: Player, private val inventory:
 /**
  * [EventIdentifier] für [PlayerQuitEvent]s
  */
-abstract class QuitEventIdentifier :
-    EventIdentifier<QuitEventListenerAdapter, PlayerQuitEvent>(QuitEventListenerAdapter::class)
+abstract class QuitEventIdentifier : EventIdentifier<PlayerQuitEvent>()
 
 /**
- * Klasse zum identifizieren, ob ein Event einer Gui Aktion zugehörig ist.
+ * Klasse zum Identifizieren, ob ein Event einer Gui Aktion zugehörig ist.
  * @param player Spieler, auf den geprüft wird
  */
 class QuitEventPlayerIdentifier(private val player: Player) : QuitEventIdentifier() {

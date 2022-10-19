@@ -40,7 +40,7 @@ class MinecraftGuiEventHandler(private val eventRegisterProvider: EventRegisterP
      * @param registration Die Aktionen des Events
      */
     fun registerDispatcher(registration: EventRegistration<out EventListenerAdapter<out Event>, out Event>) {
-        adapterClasses[registration.identifier.adapterClass]?.addRegistration(registration)
+        adapterClasses[registration.adapterClass]?.addRegistration(registration)
     }
 
     /**
@@ -48,7 +48,7 @@ class MinecraftGuiEventHandler(private val eventRegisterProvider: EventRegisterP
      * @param registration Registrierung, die entfernt werden soll
      */
     fun unregisterDispatcher(registration: EventRegistration<out EventListenerAdapter<out Event>, out Event>) {
-        adapterClasses[registration.identifier.adapterClass]?.removeRegistration(registration)
+        adapterClasses[registration.adapterClass]?.removeRegistration(registration)
     }
 
 

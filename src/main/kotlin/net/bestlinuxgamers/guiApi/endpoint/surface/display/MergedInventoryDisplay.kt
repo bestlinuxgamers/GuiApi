@@ -19,7 +19,7 @@ class MergedInventoryDisplay(override val player: Player, chestTitle: String, ch
     private val chestInventoryDisplay = ChestInventoryDisplay(player, chestTitle, chestLines)
     private val playerInventoryDisplay = PlayerInventoryDisplay(player)
 
-    override val clickEventIdentifier: EventIdentifier<ClickEventListenerAdapter, InventoryClickEvent> =
+    override val clickEventIdentifier: EventIdentifier<InventoryClickEvent> =
         MergedIdentifiersIdentifier(
             setOf(chestInventoryDisplay.clickEventIdentifier, playerInventoryDisplay.clickEventIdentifier)
         )
