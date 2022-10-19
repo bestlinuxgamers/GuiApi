@@ -2,10 +2,9 @@ package net.bestlinuxgamers.guiApi.endpoint.surface.display
 
 import net.bestlinuxgamers.guiApi.component.util.ReservedSlots
 import net.bestlinuxgamers.guiApi.endpoint.surface.SurfaceManagerOnly
-import net.bestlinuxgamers.guiApi.event.EventDispatcherOnly
-import net.bestlinuxgamers.guiApi.event.EventIdentifier
-import net.bestlinuxgamers.guiApi.event.MergedEventIdentifier
+import net.bestlinuxgamers.guiApi.event.*
 import org.bukkit.entity.Player
+import org.bukkit.event.Event
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemStack
 
@@ -20,13 +19,18 @@ class MergedInventoryDisplay(override val player: Player, chestTitle: String, ch
     private val chestInventoryDisplay = ChestInventoryDisplay(player, chestTitle, chestLines)
     private val playerInventoryDisplay = PlayerInventoryDisplay(player)
 
+    override val clickEventIdentifier: EventIdentifier<ClickEventListenerAdapter, InventoryClickEvent> =
+        MergedIdentifiersIdentifier(
+            setOf(chestInventoryDisplay.clickEventIdentifier, playerInventoryDisplay.clickEventIdentifier)
+        )
+    override val closeActionEventIdentifier: CloseEventIdentifier = chestInventoryDisplay.closeActionEventIdentifier
+    override val eventRegistrations: Set<EventRegistration<out EventListenerAdapter<out Event>, out Event>> =
+        chestInventoryDisplay.eventRegistrations + playerInventoryDisplay.eventRegistrations
+
     override val reservedSlots: ReservedSlots = ReservedSlots(
         chestInventoryDisplay.reservedSlots.getArr2D().toMutableSet()
             .also { it.addAll(playerInventoryDisplay.reservedSlots.getArr2D()) }.toTypedArray()
-    ) //TODO evtl. einfach anhand der Zeilenanzahl generieren
-
-    override val eventIdentifier: EventIdentifier =
-        MergedEventIdentifier(setOf(chestInventoryDisplay.eventIdentifier, playerInventoryDisplay.eventIdentifier))
+    ) //TODO evtl. einfach anhand der Zeilenanzahl generieren, evtl. mit + mergen
 
     @SurfaceManagerOnly
     override fun open(items: Array<ItemStack?>) {
@@ -50,8 +54,7 @@ class MergedInventoryDisplay(override val player: Player, chestTitle: String, ch
     @EventDispatcherOnly
     override fun onClose() {
         chestInventoryDisplay.onClose()
-        @OptIn(SurfaceManagerOnly::class)
-        playerInventoryDisplay.close()
+        playerInventoryDisplay.onClose()
     }
 
     /**
@@ -59,9 +62,9 @@ class MergedInventoryDisplay(override val player: Player, chestTitle: String, ch
      */
     @EventDispatcherOnly
     override fun getComponentSlot(event: InventoryClickEvent): Int {
-        return if (chestInventoryDisplay.eventIdentifier.isClickEvent(event)) {
+        return if (chestInventoryDisplay.clickEventIdentifier.isEvent(event)) {
             chestInventoryDisplay.getComponentSlot(event)
-        } else if (playerInventoryDisplay.eventIdentifier.isClickEvent(event)) {
+        } else if (playerInventoryDisplay.clickEventIdentifier.isEvent(event)) {
             chestInventoryDisplay.reservedSlots.totalReserved + playerInventoryDisplay.getComponentSlot(event)
         } else {
             throw IllegalArgumentException("Event is not associated with this Display")

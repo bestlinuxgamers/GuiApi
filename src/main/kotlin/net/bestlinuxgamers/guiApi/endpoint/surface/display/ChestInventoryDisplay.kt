@@ -4,13 +4,12 @@ import net.bestlinuxgamers.guiApi.component.util.ReservedSlots
 import net.bestlinuxgamers.guiApi.endpoint.surface.SurfaceManagerOnly
 import net.bestlinuxgamers.guiApi.endpoint.surface.display.MinecraftDisplay.Companion.INVENTORY_WIDTH
 import net.bestlinuxgamers.guiApi.endpoint.surface.util.DisplayAlreadyOpenedException
-import net.bestlinuxgamers.guiApi.event.EventDispatcherOnly
-import net.bestlinuxgamers.guiApi.event.EventIdentifier
-import net.bestlinuxgamers.guiApi.event.InventoryEventIdentifier
+import net.bestlinuxgamers.guiApi.event.*
 import net.bestlinuxgamers.guiApi.extensions.updateItems
 import net.bestlinuxgamers.guiApi.extensions.writeItems
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
+import org.bukkit.event.Event
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
@@ -39,9 +38,11 @@ class ChestInventoryDisplay(
     private val inventory: Inventory = Bukkit.createInventory(player, lines * INVENTORY_WIDTH, title)
     private var opened = false
 
-    override val reservedSlots = ReservedSlots(lines, INVENTORY_WIDTH)
+    override val clickEventIdentifier: ClickEventIdentifier = GuiClickEventIdentifier(player, inventory)
+    override val closeActionEventIdentifier: CloseEventIdentifier = GuiCloseEventIdentifier(player, inventory)
+    override val eventRegistrations: Set<EventRegistration<out EventListenerAdapter<out Event>, out Event>> = setOf()
 
-    override val eventIdentifier: EventIdentifier = InventoryEventIdentifier(inventory)
+    override val reservedSlots = ReservedSlots(lines, INVENTORY_WIDTH)
 
     @SurfaceManagerOnly
     override fun open(items: Array<ItemStack?>) {

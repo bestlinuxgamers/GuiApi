@@ -3,7 +3,7 @@ package net.bestlinuxgamers.guiApi.gui
 import net.bestlinuxgamers.guiApi.endpoint.ComponentEndpoint
 import net.bestlinuxgamers.guiApi.endpoint.surface.MinecraftGuiSurface
 import net.bestlinuxgamers.guiApi.endpoint.surface.display.ChestInventoryDisplay
-import net.bestlinuxgamers.guiApi.event.MinecraftGuiEventDispatcher
+import net.bestlinuxgamers.guiApi.event.MinecraftGuiEventHandler
 import net.bestlinuxgamers.guiApi.provider.SchedulerProvider
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
@@ -26,7 +26,7 @@ abstract class ChestInventoryGui(
     player: Player,
     title: String,
     lines: Int,
-    eventDispatcher: MinecraftGuiEventDispatcher,
+    eventDispatcher: MinecraftGuiEventHandler,
     schedulerProvider: SchedulerProvider,
     tickSpeed: Long = 20,
     static: Boolean = false,

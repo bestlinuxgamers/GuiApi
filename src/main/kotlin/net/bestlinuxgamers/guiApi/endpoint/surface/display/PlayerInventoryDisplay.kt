@@ -5,12 +5,11 @@ import net.bestlinuxgamers.guiApi.endpoint.surface.SurfaceManagerOnly
 import net.bestlinuxgamers.guiApi.endpoint.surface.display.MinecraftDisplay.Companion.INVENTORY_WIDTH
 import net.bestlinuxgamers.guiApi.endpoint.surface.util.DisplayAlreadyOpenedException
 import net.bestlinuxgamers.guiApi.endpoint.surface.util.InventoryCache
-import net.bestlinuxgamers.guiApi.event.EventDispatcherOnly
-import net.bestlinuxgamers.guiApi.event.EventIdentifier
-import net.bestlinuxgamers.guiApi.event.InventoryEventIdentifier
+import net.bestlinuxgamers.guiApi.event.*
 import net.bestlinuxgamers.guiApi.extensions.updateItems
 import net.bestlinuxgamers.guiApi.extensions.writeItems
 import org.bukkit.entity.Player
+import org.bukkit.event.Event
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.inventory.ItemStack
@@ -28,11 +27,14 @@ class PlayerInventoryDisplay(override val player: Player) : MinecraftDisplay {
     private val inventoryCache = InventoryCache(inventory)
     private var inUse = false
 
+    override val clickEventIdentifier: ClickEventIdentifier = GuiClickEventIdentifier(player, inventory)
+    override val closeActionEventIdentifier: CloseEventIdentifier = object : CloseEventIdentifier() {
+        override fun isEvent(event: InventoryCloseEvent): Boolean = false
+    }
+    override val eventRegistrations: Set<EventRegistration<out EventListenerAdapter<out Event>, out Event>> = setOf()
+
     override val reservedSlots = RESERVED_SLOTS
 
-    override val eventIdentifier: EventIdentifier = object : InventoryEventIdentifier(inventory) {
-        override fun isCloseEvent(event: InventoryCloseEvent): Boolean = false
-    }
 
     @SurfaceManagerOnly
     override fun open(items: Array<ItemStack?>) {
@@ -55,8 +57,8 @@ class PlayerInventoryDisplay(override val player: Player) : MinecraftDisplay {
 
     @SurfaceManagerOnly
     override fun close() { //TODO close funktioniert nicht (animation stoppen, listening unregister)
-        inventoryCache.restoreCache()
-        inUse = false
+        @OptIn(EventDispatcherOnly::class)
+        onClose()
     }
 
     /**
@@ -64,6 +66,8 @@ class PlayerInventoryDisplay(override val player: Player) : MinecraftDisplay {
      */
     @EventDispatcherOnly
     override fun onClose() { //TODO bei leaven schließen
+        inventoryCache.restoreCache()
+        inUse = false
     }
 
     /**

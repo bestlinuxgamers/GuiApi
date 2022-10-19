@@ -58,8 +58,7 @@ abstract class ComponentEndpoint(
 
     /**
      * Führt die Schließ-Routine durch.
-     * Sollte nur von einem close Event eines EventDispatchers aufgerufen werden!
-     * @see [net.bestlinuxgamers.guiApi.event.SurfaceEventDispatcher.dispatchCloseEvent]
+     * Sollte nur durch ein Event eines EventListeners aufgerufen werden!
      */
     @EventDispatcherOnly
     internal fun performClose() {
@@ -70,13 +69,13 @@ abstract class ComponentEndpoint(
 
     /**
      * Führt die Klick-Routine durch.
-     * Sollte nur von einem click Event eines EventDispatchers aufgerufen werden!
-     * @see [net.bestlinuxgamers.guiApi.event.SurfaceEventDispatcher.dispatchClickEvent]
+     * Sollte nur durch ein klick Event eines EventListeners aufgerufen werden!
+     * @see click
      */
     @EventDispatcherOnly
     internal fun performClick(clickedSlot: Int, event: InventoryClickEvent) {
         if (clickedSlot < 0 || clickedSlot >= reservedSlots.totalReserved) return
-        event.isCancelled = true //TODO feinere einstellung
+        event.isCancelled = true //TODO feinere Einstellung
         click(event, clickedSlot)
     }
 

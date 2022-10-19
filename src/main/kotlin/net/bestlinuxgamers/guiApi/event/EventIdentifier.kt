@@ -1,46 +1,93 @@
 package net.bestlinuxgamers.guiApi.event
 
+import org.bukkit.entity.Player
+import org.bukkit.event.Event
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
+import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.inventory.Inventory
+import kotlin.reflect.KClass
 
 /**
- * Schnittstelle zum zuordnen eines Minecraft Events zu einem dem dazugehörigen [net.bestlinuxgamers.guiApi.endpoint.surface.display.MinecraftDisplay]
+ * Klasse zum Identifizieren von Events.
+ * @param adapterClass Klasse des Adapters [T].
+ * Diese wird zum zuordnen einer Instanz dieser Klasse zu dem dazugehörigen [EventListenerAdapter] benötigt.
+ * @param T Adapter, dessen Events identifiziert werden sollen
+ * @param E Event-Typ, der identifiziert werden soll
  */
-interface EventIdentifier {
-
+abstract class EventIdentifier<T : EventListenerAdapter<E>, E : Event>(val adapterClass: KClass<T>) { //TODO Adapter verschieben nach EventRegistration
     /**
-     * @param event Event, welches auf eine Zugehörigkeit geprüft werden soll
-     * @return Ob das angegebene Event zu dem Display gehört
+     * Identifiziert ein Event
+     * @param event Event, welches identifiziert werden soll
+     * @return Ob das Event zugehörig ist
      */
-    fun isClickEvent(event: InventoryClickEvent): Boolean
-
-    /**
-     * @param event Event, welches auf eine Zugehörigkeit geprüft werden soll
-     * @return Ob das angegebene Event zu dem Display gehört
-     */
-    fun isCloseEvent(event: InventoryCloseEvent): Boolean
+    abstract fun isEvent(event: E): Boolean
 }
+
+// merged
 
 /**
- * Ordnet ein Event mithilfe eines Inventars zu
- * @param inventory Inventar, auf das im Event geprüft wird
+ * Identifiziert ein Event anhand von mehreren anderen [EventIdentifier].
+ * Events werden als zugehörig bewertet, sobald eines der angegeben [EventIdentifier.isEvent] true zurückgibt.
+ * @param identifiers Alle Identifier, die vereint werden sollen
+ * @param T Typ des Adapters, dessen [EventIdentifier] vereint werden sollen
+ * @param E Typ des Events, den die [identifiers] identifizieren müssen
  */
-open class InventoryEventIdentifier(private val inventory: Inventory) : EventIdentifier {
-
-    override fun isClickEvent(event: InventoryClickEvent): Boolean = event.clickedInventory == inventory
-
-    override fun isCloseEvent(event: InventoryCloseEvent): Boolean = event.inventory == inventory
+class MergedIdentifiersIdentifier<T : EventListenerAdapter<E>, E : Event>(private val identifiers: Set<EventIdentifier<T, E>>) :
+    EventIdentifier<T, E>(identifiers.first().adapterClass) {
+    override fun isEvent(event: E): Boolean = identifiers.any { it.isEvent(event) }
 }
+
+//click
 
 /**
- * Ordnet ein Event mithilfe mehrerer anderer [EventIdentifier] zu.
- * Dabei gilt es als zugeordnet, wenn eines der angegebenen [EventIdentifier] true zurückgibt.
- * @param identifiers [EventIdentifier], die zum prüfen genutzt werden
+ * [EventIdentifier] für [InventoryClickEvent]s
  */
-class MergedEventIdentifier(private val identifiers: Set<EventIdentifier>) : EventIdentifier {
+abstract class ClickEventIdentifier :
+    EventIdentifier<ClickEventListenerAdapter, InventoryClickEvent>(ClickEventListenerAdapter::class)
 
-    override fun isClickEvent(event: InventoryClickEvent): Boolean = identifiers.any { it.isClickEvent(event) }
-
-    override fun isCloseEvent(event: InventoryCloseEvent): Boolean = identifiers.any { it.isCloseEvent(event) }
+/**
+ * Klasse zum identifizieren, ob ein Event einer Gui Aktion zugehörig ist.
+ * @param player Spieler, auf den geprüft wird
+ * @param inventory Inventar, welches benutzt werden soll
+ */
+class GuiClickEventIdentifier(private val player: Player, private val inventory: Inventory) :
+    ClickEventIdentifier() {
+    override fun isEvent(event: InventoryClickEvent): Boolean =
+        event.whoClicked == player && event.clickedInventory == inventory && event.slot >= 0
 }
+
+//close
+
+/**
+ * [EventIdentifier] für [InventoryCloseEvent]s
+ */
+abstract class CloseEventIdentifier :
+    EventIdentifier<CloseEventListenerAdapter, InventoryCloseEvent>(CloseEventListenerAdapter::class)
+
+/**
+ * Klasse zum identifizieren, ob ein Event einer Gui Aktion zugehörig ist.
+ * @param player Spieler, auf den geprüft wird
+ * @param inventory Inventar, welches benutzt werden soll
+ */
+class GuiCloseEventIdentifier(private val player: Player, private val inventory: Inventory) :
+    CloseEventIdentifier() {
+    override fun isEvent(event: InventoryCloseEvent): Boolean = event.player == player && event.inventory == inventory
+}
+
+//quit
+
+/**
+ * [EventIdentifier] für [PlayerQuitEvent]s
+ */
+abstract class QuitEventIdentifier :
+    EventIdentifier<QuitEventListenerAdapter, PlayerQuitEvent>(QuitEventListenerAdapter::class)
+
+/**
+ * Klasse zum identifizieren, ob ein Event einer Gui Aktion zugehörig ist.
+ * @param player Spieler, auf den geprüft wird
+ */
+class QuitEventPlayerIdentifier(private val player: Player) : QuitEventIdentifier() {
+    override fun isEvent(event: PlayerQuitEvent): Boolean = event.player == player
+}
+

@@ -1,11 +1,12 @@
 package net.bestlinuxgamers.guiApi.provider
 
-import net.bestlinuxgamers.guiApi.event.MinecraftGuiEventDispatcher
+import net.bestlinuxgamers.guiApi.event.MinecraftGuiEventHandler
 import org.bukkit.plugin.java.JavaPlugin
 
-class GuiInstancesProvider(val eventDispatcher: MinecraftGuiEventDispatcher, val schedulerProvider: SchedulerProvider) {
+@Suppress("unused")
+class GuiInstancesProvider(val eventDispatcher: MinecraftGuiEventHandler, val schedulerProvider: SchedulerProvider) {
     constructor(plugin: JavaPlugin) : this(
-        MinecraftGuiEventDispatcher(EventRegisterProvider(plugin)),
+        MinecraftGuiEventHandler(EventRegisterProvider(plugin)),
         SchedulerProvider(plugin)
     )
 }

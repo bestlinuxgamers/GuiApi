@@ -9,7 +9,6 @@ import org.bukkit.inventory.ItemStack
  * Diese Schnittstelle beinhaltet alle Funktionen, um mit einer grafischen Oberfläche zu kommunizieren und
  * sich für Events zu registrieren.
  * @see [net.bestlinuxgamers.guiApi.endpoint.surface.display.DisplayInterface]
- * @see [net.bestlinuxgamers.guiApi.event.MinecraftGuiEventDispatcher]
  */
 interface GuiSurfaceInterface {
 

@@ -3,7 +3,6 @@ package net.bestlinuxgamers.guiApi.endpoint.surface.display
 import net.bestlinuxgamers.guiApi.component.util.ReservedSlots
 import net.bestlinuxgamers.guiApi.endpoint.surface.SurfaceManagerOnly
 import net.bestlinuxgamers.guiApi.event.EventDispatcherOnly
-import net.bestlinuxgamers.guiApi.event.EventIdentifier
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemStack
 
@@ -12,7 +11,6 @@ import org.bukkit.inventory.ItemStack
  */
 interface DisplayInterface {
     val reservedSlots: ReservedSlots
-    val eventIdentifier: EventIdentifier
 
     /**
      * Öffnet die Oberfläche

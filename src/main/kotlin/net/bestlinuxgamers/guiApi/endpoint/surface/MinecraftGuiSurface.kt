@@ -5,35 +5,71 @@ import net.bestlinuxgamers.guiApi.endpoint.ComponentEndpoint
 import net.bestlinuxgamers.guiApi.endpoint.surface.display.MinecraftDisplay
 import net.bestlinuxgamers.guiApi.endpoint.surface.util.NoEndpointRegisteredException
 import net.bestlinuxgamers.guiApi.endpoint.surface.util.SurfaceAlreadyInUseException
-import net.bestlinuxgamers.guiApi.endpoint.surface.util.SurfaceEventReceiver
-import net.bestlinuxgamers.guiApi.event.EventDispatcherOnly
-import net.bestlinuxgamers.guiApi.event.MinecraftGuiEventDispatcher
+import net.bestlinuxgamers.guiApi.event.*
+import org.bukkit.event.Event
 import org.bukkit.inventory.ItemStack
 
 /**
- * Klasse verbindet eine grafische Minecraft Inventar Oberfläche ([MinecraftDisplay]) und den [MinecraftGuiEventDispatcher]
+ * Klasse verbindet ein [ComponentEndpoint] mit einer grafischen Minecraft Inventar Oberfläche ([MinecraftDisplay])
+ * und dem [MinecraftGuiEventHandler].
+ * [MinecraftGuiEventHandler] und [MinecraftDisplay] wurde getrennt,
+ * damit ein [MinecraftDisplay] von einem anderen Display ohne Probleme verwendet werden kann.
  * @param display Die Oberfläche des Inventars
- * @param eventDispatcher Der Event-Manager für Events des [display]
+ * @param eventHandler Der Event-Manager für Events des [display]
  */
 open class MinecraftGuiSurface(
     private val display: MinecraftDisplay,
-    private val eventDispatcher: MinecraftGuiEventDispatcher
+    private val eventHandler: MinecraftGuiEventHandler
 ) : GuiSurfaceInterface {
 
-    private var registeredReceiver: SurfaceEventReceiver? = null
+    private var registeredEndpoint: ComponentEndpoint? = null
+    private val activeRegistrations: MutableSet<EventRegistration<out EventListenerAdapter<out Event>, out Event>> =
+        mutableSetOf()
 
     /**
      * @throws SurfaceAlreadyInUseException wenn sich bereits registriert wurde
      */
     @SurfaceManagerOnly
     override fun registerEndpoint(endpoint: ComponentEndpoint) {
-        if (registeredReceiver != null) throw SurfaceAlreadyInUseException()
-        registeredReceiver = SurfaceEventReceiver(display, endpoint)
+        if (registeredEndpoint != null) throw SurfaceAlreadyInUseException()
+        registeredEndpoint = endpoint
+        registerEvents(endpoint)
+    }
+
+    /**
+     * Registriert alle dem Surface bekannten [EventRegistration]s.
+     * Außerdem erstellt es für die klick und close Aktion eine [EventRegistration].
+     * @see registerRegistration
+     */
+    private fun registerEvents(endpoint: ComponentEndpoint) {
+        registerRegistration(
+            EventRegistration(
+                display.clickEventIdentifier,
+                @OptIn(EventDispatcherOnly::class)
+                LambdaEventAction { endpoint.performClick(display.getComponentSlot(it), it) })
+        )
+        registerRegistration(
+            EventRegistration(
+                display.closeActionEventIdentifier,
+                @OptIn(EventDispatcherOnly::class) LambdaEventAction { endpoint.performClose() })
+        )
+        display.eventRegistrations.forEach { registerRegistration(it) }
+    }
+
+    /**
+     * Registriert eine [EventRegistration] und fügt diese einer Liste hinzu,
+     * damit sie später wieder unregistriert werden können.
+     * @see MinecraftGuiEventHandler.registerDispatcher
+     */
+    private fun registerRegistration(registration: EventRegistration<out EventListenerAdapter<out Event>, out Event>) {
+        eventHandler.registerDispatcher(registration)
+        activeRegistrations.add(registration)
     }
 
     @SurfaceManagerOnly
     override fun unregisterEndpoint() {
-        registeredReceiver = null
+        registeredEndpoint = null
+        activeRegistrations.removeAll { eventHandler.unregisterDispatcher(it); true }
     }
 
     /**
@@ -42,12 +78,6 @@ open class MinecraftGuiSurface(
      */
     @SurfaceManagerOnly
     override fun open(items: Array<ItemStack?>) {
-        val receiver = registeredReceiver ?: throw NoEndpointRegisteredException()
-        eventDispatcher.registerListening(
-            display.player,
-            display.eventIdentifier,
-            receiver
-        )
         display.open(items)
     }
 
@@ -65,8 +95,6 @@ open class MinecraftGuiSurface(
 
     @EventDispatcherOnly
     override fun onClose() {
-        @OptIn(SurfaceManagerOnly::class)
-        registeredReceiver?.let { eventDispatcher.unregisterListening(display.player, it) }
         display.onClose()
     }
 
