@@ -39,8 +39,9 @@ class ChestInventoryDisplay(
     private var opened = false
 
     override val clickEventIdentifier: ClickEventIdentifier = GuiClickEventIdentifier(player, inventory)
-    override val closeActionEventIdentifier: CloseEventIdentifier = GuiCloseEventIdentifier(player, inventory)
     override val eventRegistrations: Set<EventRegistration<out EventListenerAdapter<out Event>, out Event>> = setOf()
+    override fun generateCloseActionRegistration(action: () -> Unit): EventRegistration<out EventListenerAdapter<out Event>, out Event> =
+        CloseEventRegistration(GuiCloseEventIdentifier(player, inventory), LambdaEventAction { action() })
 
     override val reservedSlots = ReservedSlots(lines, INVENTORY_WIDTH)
 

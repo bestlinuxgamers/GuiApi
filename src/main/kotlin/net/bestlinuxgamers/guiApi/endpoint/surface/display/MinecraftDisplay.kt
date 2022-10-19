@@ -6,7 +6,6 @@ import net.bestlinuxgamers.guiApi.event.EventRegistration
 import org.bukkit.entity.Player
 import org.bukkit.event.Event
 import org.bukkit.event.inventory.InventoryClickEvent
-import org.bukkit.event.inventory.InventoryCloseEvent
 
 /**
  * Eine grafische Oberfläche in Minecraft
@@ -16,8 +15,14 @@ interface MinecraftDisplay : DisplayInterface {
     val player: Player
 
     val clickEventIdentifier: EventIdentifier<InventoryClickEvent>
-    val closeActionEventIdentifier: EventIdentifier<InventoryCloseEvent> //TODO generischer Typ, da unterschiedliche Events möglich
     val eventRegistrations: Set<EventRegistration<out EventListenerAdapter<out Event>, out Event>>
+
+    /**
+     * Generiert eine [EventRegistration], welche bei einem Event, welches das Display
+     * schließen soll, die [action] ausführt.
+     * @param action Aktion, die bei dem Event ausgeführt wird
+     */
+    fun generateCloseActionRegistration(action: () -> Unit): EventRegistration<out EventListenerAdapter<out Event>, out Event>
 
     companion object {
         const val INVENTORY_WIDTH = 9

@@ -11,7 +11,6 @@ import net.bestlinuxgamers.guiApi.extensions.writeItems
 import org.bukkit.entity.Player
 import org.bukkit.event.Event
 import org.bukkit.event.inventory.InventoryClickEvent
-import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.PlayerInventory
 
@@ -28,10 +27,11 @@ class PlayerInventoryDisplay(override val player: Player) : MinecraftDisplay {
     private var inUse = false
 
     override val clickEventIdentifier: ClickEventIdentifier = GuiClickEventIdentifier(player, inventory)
-    override val closeActionEventIdentifier: CloseEventIdentifier = object : CloseEventIdentifier() {
-        override fun isEvent(event: InventoryCloseEvent): Boolean = false
-    }
     override val eventRegistrations: Set<EventRegistration<out EventListenerAdapter<out Event>, out Event>> = setOf()
+
+    override fun generateCloseActionRegistration(action: () -> Unit): EventRegistration<out EventListenerAdapter<out Event>, out Event> =
+        QuitEventRegistration(QuitEventPlayerIdentifier(player), LambdaEventAction { action() })
+
 
     override val reservedSlots = RESERVED_SLOTS
 

@@ -50,10 +50,7 @@ open class MinecraftGuiSurface(
             )
         )
         registerRegistration(
-            CloseEventRegistration(
-                display.closeActionEventIdentifier,
-                @OptIn(EventDispatcherOnly::class) LambdaEventAction { endpoint.performClose() },
-            )
+            display.generateCloseActionRegistration { @OptIn(EventDispatcherOnly::class) endpoint.performClose() }
         )
         display.eventRegistrations.forEach { registerRegistration(it) }
     }

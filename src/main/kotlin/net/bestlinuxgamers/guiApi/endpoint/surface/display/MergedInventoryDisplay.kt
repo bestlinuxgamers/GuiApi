@@ -23,9 +23,11 @@ class MergedInventoryDisplay(override val player: Player, chestTitle: String, ch
         MergedIdentifiersIdentifier(
             setOf(chestInventoryDisplay.clickEventIdentifier, playerInventoryDisplay.clickEventIdentifier)
         )
-    override val closeActionEventIdentifier: CloseEventIdentifier = chestInventoryDisplay.closeActionEventIdentifier
     override val eventRegistrations: Set<EventRegistration<out EventListenerAdapter<out Event>, out Event>> =
         chestInventoryDisplay.eventRegistrations + playerInventoryDisplay.eventRegistrations
+
+    override fun generateCloseActionRegistration(action: () -> Unit): EventRegistration<out EventListenerAdapter<out Event>, out Event> =
+        chestInventoryDisplay.generateCloseActionRegistration(action)
 
     override val reservedSlots: ReservedSlots = ReservedSlots(
         chestInventoryDisplay.reservedSlots.getArr2D() + playerInventoryDisplay.reservedSlots.getArr2D()
