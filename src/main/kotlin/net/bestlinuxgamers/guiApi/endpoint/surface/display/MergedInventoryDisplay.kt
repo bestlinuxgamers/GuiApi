@@ -28,9 +28,8 @@ class MergedInventoryDisplay(override val player: Player, chestTitle: String, ch
         chestInventoryDisplay.eventRegistrations + playerInventoryDisplay.eventRegistrations
 
     override val reservedSlots: ReservedSlots = ReservedSlots(
-        chestInventoryDisplay.reservedSlots.getArr2D().toMutableSet()
-            .also { it.addAll(playerInventoryDisplay.reservedSlots.getArr2D()) }.toTypedArray()
-    ) //TODO evtl. einfach anhand der Zeilenanzahl generieren, evtl. mit + mergen
+        chestInventoryDisplay.reservedSlots.getArr2D() + playerInventoryDisplay.reservedSlots.getArr2D()
+    )
 
     @SurfaceManagerOnly
     override fun open(items: Array<ItemStack?>) {
