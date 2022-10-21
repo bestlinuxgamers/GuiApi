@@ -10,13 +10,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 
-internal object GuiComponentTest {
-
-    @BeforeAll
-    @JvmStatic
-    fun initServer() {
-        MinecraftServerMockObj.apply { addExtension(MinecraftItemExtension()) }.apply()
-    }
+internal class GuiComponentTest {
 
     @Test
     fun testLock() {
@@ -363,5 +357,13 @@ internal object GuiComponentTest {
         GuiComponent(reserved, true, renderFallback = renderFallback) {
         override fun setUp() {}
         override fun beforeRender(frame: Long) {}
+    }
+
+    companion object {
+        @BeforeAll
+        @JvmStatic
+        fun initServer() {
+            MinecraftServerMockObj.apply { addExtension(MinecraftItemExtension()) }.apply()
+        }
     }
 }

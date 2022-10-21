@@ -11,16 +11,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 
-internal object InventoryExtensionTest {
-
-    @BeforeAll
-    @JvmStatic
-    fun initServer() {
-        MinecraftServerMockObj.apply {
-            addExtension(MinecraftItemExtension())
-            addExtension(MinecraftInventoryExtension())
-        }.apply()
-    }
+internal class InventoryExtensionTest {
 
     @Test
     fun testWriteItems() {
@@ -70,6 +61,17 @@ internal object InventoryExtensionTest {
         }
     }
 
-    private const val INV_SIZE = 1 * 9
+    companion object {
+        @BeforeAll
+        @JvmStatic
+        fun initServer() {
+            MinecraftServerMockObj.apply {
+                addExtension(MinecraftItemExtension())
+                addExtension(MinecraftInventoryExtension())
+            }.apply()
+        }
+
+        private const val INV_SIZE = 1 * 9
+    }
 
 }

@@ -11,16 +11,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 
-internal object InventoryCacheTest {
-
-    @BeforeAll
-    @JvmStatic
-    fun initServer() {
-        MinecraftServerMockObj.apply {
-            addExtension(MinecraftInventoryExtension())
-            addExtension(MinecraftItemExtension())
-        }.apply()
-    }
+internal class InventoryCacheTest {
 
     @Test
     fun testSaveCache() {
@@ -62,5 +53,17 @@ internal object InventoryCacheTest {
         }
     }
 
-    private const val INV_SIZE = 1 * 9
+    companion object {
+        @BeforeAll
+        @JvmStatic
+        fun initServer() {
+            MinecraftServerMockObj.apply {
+                addExtension(MinecraftInventoryExtension())
+                addExtension(MinecraftItemExtension())
+            }.apply()
+        }
+
+        private const val INV_SIZE = 1 * 9
+
+    }
 }
