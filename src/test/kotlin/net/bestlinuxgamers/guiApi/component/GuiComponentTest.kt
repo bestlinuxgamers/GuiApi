@@ -2,20 +2,15 @@ package net.bestlinuxgamers.guiApi.component
 
 import net.bestlinuxgamers.guiApi.component.essentials.ItemComponent
 import net.bestlinuxgamers.guiApi.component.util.*
-import net.bestlinuxgamers.guiApi.templates.MinecraftItemTest
+import net.bestlinuxgamers.guiApi.templates.server.MinecraftItemExtension
+import net.bestlinuxgamers.guiApi.templates.server.MinecraftServerMockObj
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 
-internal object GuiComponentTest {
-
-    @BeforeAll
-    @JvmStatic
-    fun initServer() {
-        MinecraftItemTest.mockServer()
-    }
+internal class GuiComponentTest {
 
     @Test
     fun testLock() {
@@ -362,5 +357,13 @@ internal object GuiComponentTest {
         GuiComponent(reserved, true, renderFallback = renderFallback) {
         override fun setUp() {}
         override fun beforeRender(frame: Long) {}
+    }
+
+    companion object {
+        @BeforeAll
+        @JvmStatic
+        fun initServer() {
+            MinecraftServerMockObj.apply { addExtension(MinecraftItemExtension()) }.apply()
+        }
     }
 }
