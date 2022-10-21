@@ -82,8 +82,7 @@ class PlayerInventoryDisplay(override val player: Player) : MinecraftDisplay {
         val end = reservedSlots.totalReserved
         val lastLineStart = end - INVENTORY_WIDTH
 
-        return items.copyOfRange(lastLineStart, end).toMutableList()
-            .apply { addAll(items.copyOfRange(start, lastLineStart)) }.toTypedArray()
+        return items.copyOfRange(lastLineStart, end) + items.copyOfRange(start, lastLineStart)
     }
 
     @EventDispatcherOnly
