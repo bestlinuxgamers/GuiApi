@@ -21,6 +21,12 @@ abstract class EventIdentifier<E : Event> {
     abstract fun isEvent(event: E): Boolean
 }
 
+//lambda
+
+class LambdaEventIdentifier<E : Event>(private val identify: (event: E) -> Boolean) : EventIdentifier<E>() {
+    override fun isEvent(event: E): Boolean = identify(event)
+}
+
 // merged
 
 /**
