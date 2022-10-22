@@ -17,7 +17,9 @@ class MinecraftGuiEventHandler(private val eventRegisterProvider: EventRegisterP
     private val adapters: Set<EventListenerAdapter<out Event>> = setOf(
         ClickEventListenerAdapter(),
         CloseEventListenerAdapter(),
-        QuitEventListenerAdapter()
+        QuitEventListenerAdapter(),
+        ItemDragEventListenerAdapter(),
+        ItemPickupEventListenerAdapter()
     )
 
     private val adapterClasses: Map<KClass<out EventListenerAdapter<out Event>>, EventListenerAdapter<out Event>> =

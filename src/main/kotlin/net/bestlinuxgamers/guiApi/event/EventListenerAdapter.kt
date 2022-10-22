@@ -4,8 +4,10 @@ import org.bukkit.event.Event
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
+import org.bukkit.event.entity.EntityPickupItemEvent
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
+import org.bukkit.event.inventory.InventoryDragEvent
 import org.bukkit.event.player.PlayerQuitEvent
 
 /**
@@ -97,4 +99,21 @@ class QuitEventListenerAdapter : EventListenerAdapter<PlayerQuitEvent>() {
     override fun onEvent(event: PlayerQuitEvent) {
         dispatchEvent(event)
     }
+}
+
+class ItemDragEventListenerAdapter : EventListenerAdapter<InventoryDragEvent>() {
+    @EventHandler(priority = EventPriority.HIGHEST)
+    @OptIn(EventDispatcherOnly::class)
+    override fun onEvent(event: InventoryDragEvent) {
+        dispatchEvent(event)
+    }
+}
+
+class ItemPickupEventListenerAdapter : EventListenerAdapter<EntityPickupItemEvent>() {
+    @EventHandler(priority = EventPriority.HIGHEST)
+    @OptIn(EventDispatcherOnly::class)
+    override fun onEvent(event: EntityPickupItemEvent) {
+        dispatchEvent(event)
+    }
+
 }
