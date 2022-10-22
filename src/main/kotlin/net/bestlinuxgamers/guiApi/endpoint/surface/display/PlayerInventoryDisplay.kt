@@ -56,9 +56,7 @@ class PlayerInventoryDisplay(override val player: Player) : MinecraftDisplay {
     }
 
     @SurfaceManagerOnly
-    override fun close() { //TODO close funktioniert nicht (animation stoppen, listening unregister)
-        @OptIn(EventDispatcherOnly::class)
-        onClose()
+    override fun close() {
     }
 
     /**

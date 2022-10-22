@@ -52,7 +52,11 @@ abstract class ComponentEndpoint(
      * @see GuiSurfaceInterface.close
      */
     @Suppress("unused")
-    fun close() = surface.close()
+    fun close() {
+        @OptIn(EventDispatcherOnly::class)
+        performClose()
+        surface.close()
+    }
 
     //Event
 
