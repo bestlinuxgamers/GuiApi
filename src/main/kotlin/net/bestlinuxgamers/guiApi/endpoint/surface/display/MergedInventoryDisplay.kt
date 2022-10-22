@@ -23,8 +23,7 @@ class MergedInventoryDisplay(override val player: Player, chestTitle: String, ch
         MergedIdentifiersIdentifier(
             setOf(chestInventoryDisplay.clickEventIdentifier, playerInventoryDisplay.clickEventIdentifier)
         )
-    override val eventRegistrations: Set<EventRegistration<out EventListenerAdapter<out Event>, out Event>> =
-        chestInventoryDisplay.eventRegistrations + playerInventoryDisplay.eventRegistrations
+    override val eventRegistrations: Set<EventRegistration<out EventListenerAdapter<out Event>, out Event>> = setOf() //TODO muss doch noch z.B. von PlayerInventory die Pickup registration registriern
 
     override fun generateCloseActionRegistration(action: () -> Unit): EventRegistration<out EventListenerAdapter<out Event>, out Event> =
         chestInventoryDisplay.generateCloseActionRegistration(action)

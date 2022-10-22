@@ -10,6 +10,7 @@ import net.bestlinuxgamers.guiApi.extensions.updateItems
 import net.bestlinuxgamers.guiApi.extensions.writeItems
 import org.bukkit.entity.Player
 import org.bukkit.event.Event
+import org.bukkit.event.inventory.InventoryAction
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.PlayerInventory
@@ -27,7 +28,51 @@ class PlayerInventoryDisplay(override val player: Player) : MinecraftDisplay {
     private var inUse = false
 
     override val clickEventIdentifier: ClickEventIdentifier = GuiClickEventIdentifier(player, inventory)
-    override val eventRegistrations: Set<EventRegistration<out EventListenerAdapter<out Event>, out Event>> = setOf()
+    override val eventRegistrations: Set<EventRegistration<out EventListenerAdapter<out Event>, out Event>> = setOf(
+        EventRegistration(
+            LambdaEventIdentifier {
+                if (it.entity is Player) {
+                    if (it.entity as Player == this@PlayerInventoryDisplay.player) {
+                        return@LambdaEventIdentifier true
+                    }
+                }
+                return@LambdaEventIdentifier false
+            },
+            LambdaEventAction {
+                it.isCancelled = true
+            },
+            ItemPickupEventListenerAdapter::class
+        ),
+        EventRegistration(
+            LambdaEventIdentifier {
+                // checking if the raw slot is lower than the inventory size to determine that the upper inventory is clicked,
+                // is used because low minecraft versions (like 1.12) do not have InventoryView#getInventory(int) to
+                // determine the affected inventory.
+                if (it.view.bottomInventory == inventory && it.rawSlots.any { rs -> rs >= it.view.topInventory.size }) {
+                    return@LambdaEventIdentifier true
+                }
+                return@LambdaEventIdentifier false
+            },
+            LambdaEventAction {
+                it.isCancelled = true
+                it.result = Event.Result.DENY
+            },
+            ItemDragEventListenerAdapter::class
+        ),
+        EventRegistration(
+            LambdaEventIdentifier {
+                return@LambdaEventIdentifier it.whoClicked == player && it.view.bottomInventory == inventory &&
+                        (it.action == InventoryAction.MOVE_TO_OTHER_INVENTORY ||
+                                it.action == InventoryAction.HOTBAR_MOVE_AND_READD ||
+                                it.action == InventoryAction.HOTBAR_SWAP ||
+                                it.action == InventoryAction.COLLECT_TO_CURSOR)
+            },
+            LambdaEventAction {
+                it.isCancelled = true
+            },
+            ClickEventListenerAdapter::class
+        )
+    )
 
     override fun generateCloseActionRegistration(action: () -> Unit): EventRegistration<out EventListenerAdapter<out Event>, out Event> =
         QuitEventRegistration(QuitEventPlayerIdentifier(player), LambdaEventAction { action() })
@@ -63,7 +108,7 @@ class PlayerInventoryDisplay(override val player: Player) : MinecraftDisplay {
      * Das Spielerinventar kann durch das Schließ-Event nicht geschlossen werden.
      */
     @EventDispatcherOnly
-    override fun onClose() { //TODO bei leaven schließen
+    override fun onClose() {
         inventoryCache.restoreCache()
         inUse = false
     }
