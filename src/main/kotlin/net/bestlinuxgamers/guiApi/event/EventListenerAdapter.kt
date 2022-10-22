@@ -81,7 +81,7 @@ class ClickEventListenerAdapter : EventListenerAdapter<InventoryClickEvent>() {
  * [EventListenerAdapter] für [InventoryCloseEvent]s
  */
 class CloseEventListenerAdapter : EventListenerAdapter<InventoryCloseEvent>() {
-    @EventHandler(priority = EventPriority.HIGHEST) //TODO evetl. monitor
+    @EventHandler(priority = EventPriority.MONITOR)
     @OptIn(EventDispatcherOnly::class)
     override fun onEvent(event: InventoryCloseEvent) {
         dispatchEvent(event)
@@ -92,7 +92,7 @@ class CloseEventListenerAdapter : EventListenerAdapter<InventoryCloseEvent>() {
  * [EventListenerAdapter] für [PlayerQuitEvent]s
  */
 class QuitEventListenerAdapter : EventListenerAdapter<PlayerQuitEvent>() {
-    @EventHandler(priority = EventPriority.HIGHEST) //TODO evetl. monitor
+    @EventHandler(priority = EventPriority.MONITOR)
     @OptIn(EventDispatcherOnly::class)
     override fun onEvent(event: PlayerQuitEvent) {
         dispatchEvent(event)
