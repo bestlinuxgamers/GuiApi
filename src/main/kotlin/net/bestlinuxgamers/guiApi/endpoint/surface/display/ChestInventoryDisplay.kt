@@ -27,6 +27,7 @@ class ChestInventoryDisplay(
     override val player: Player,
     title: String,
     lines: Int,
+    disableOtherInventories: Boolean = false,
     unsafeLines: Boolean = false
 ) : MinecraftDisplay {
 
@@ -40,35 +41,47 @@ class ChestInventoryDisplay(
     private var opened = false
 
     override val clickEventIdentifier: ClickEventIdentifier = GuiClickEventIdentifier(player, inventory)
-    override val eventRegistrations: Set<EventRegistration<out EventListenerAdapter<out Event>, out Event>> = setOf(
-        EventRegistration(
-            LambdaEventIdentifier {
-                // checking if the raw slot is lower than the inventory size to determine that the upper inventory is clicked,
-                // is used because low minecraft versions (like 1.12) do not have InventoryView#getInventory(int) to
-                // determine the affected inventory.
-                if (it.view.topInventory == inventory && it.rawSlots.any { rs -> rs < inventory.size }) {
-                    return@LambdaEventIdentifier true
-                }
-                return@LambdaEventIdentifier false
-            },
-            LambdaEventAction {
-                it.isCancelled = true
-                it.result = Event.Result.DENY
-            },
-            ItemDragEventListenerAdapter::class
-        ),
-        EventRegistration(
-            LambdaEventIdentifier {
-                return@LambdaEventIdentifier it.whoClicked == player && it.view.topInventory == inventory &&
-                        (it.action == InventoryAction.MOVE_TO_OTHER_INVENTORY ||
-                                it.action == InventoryAction.COLLECT_TO_CURSOR)
-            },
-            LambdaEventAction {
-                it.isCancelled = true
-            },
-            ClickEventListenerAdapter::class
+    override val externalGuiModificationCancelRegistrations: Set<EventRegistration<out EventListenerAdapter<out Event>, out Event>> =
+        if (!disableOtherInventories) setOf(
+            EventRegistration(
+                LambdaEventIdentifier {
+                    // checking if the raw slot is lower than the inventory size to determine that the upper inventory is clicked,
+                    // is used because low minecraft versions (like 1.12) do not have InventoryView#getInventory(int) to
+                    // determine the affected inventory.
+                    if (it.view.topInventory == inventory && it.rawSlots.any { rs -> rs < inventory.size }) {
+                        return@LambdaEventIdentifier true
+                    }
+                    return@LambdaEventIdentifier false
+                },
+                LambdaEventAction {
+                    it.isCancelled = true
+                    it.result = Event.Result.DENY
+                },
+                ItemDragEventListenerAdapter::class
+            ),
+            EventRegistration(
+                LambdaEventIdentifier {
+                    return@LambdaEventIdentifier it.whoClicked == player && it.view.topInventory == inventory &&
+                            (it.action == InventoryAction.MOVE_TO_OTHER_INVENTORY ||
+                                    it.action == InventoryAction.COLLECT_TO_CURSOR)
+                },
+                LambdaEventAction {
+                    it.isCancelled = true
+                },
+                ClickEventListenerAdapter::class
+            )
+        ) else setOf(
+            EventRegistration(
+                LambdaEventIdentifier {
+                    return@LambdaEventIdentifier it.whoClicked == player && it.clickedInventory != inventory
+                },
+                LambdaEventAction {
+                    it.isCancelled = true
+                },
+                ClickEventListenerAdapter::class
+            )
         )
-    )
+    override val additionalRegistrations: Set<EventRegistration<out EventListenerAdapter<out Event>, out Event>> = setOf()
 
     override fun generateCloseActionRegistration(action: () -> Unit): EventRegistration<out EventListenerAdapter<out Event>, out Event> =
         CloseEventRegistration(GuiCloseEventIdentifier(player, inventory), LambdaEventAction { action() })

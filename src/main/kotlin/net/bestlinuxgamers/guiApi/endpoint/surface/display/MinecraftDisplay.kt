@@ -15,7 +15,8 @@ interface MinecraftDisplay : DisplayInterface {
     val player: Player
 
     val clickEventIdentifier: EventIdentifier<InventoryClickEvent>
-    val eventRegistrations: Set<EventRegistration<out EventListenerAdapter<out Event>, out Event>>
+    val externalGuiModificationCancelRegistrations: Set<EventRegistration<out EventListenerAdapter<out Event>, out Event>>
+    val additionalRegistrations: Set<EventRegistration<out EventListenerAdapter<out Event>, out Event>>
 
     /**
      * Generiert eine [EventRegistration], welche bei einem Event, welches das Display

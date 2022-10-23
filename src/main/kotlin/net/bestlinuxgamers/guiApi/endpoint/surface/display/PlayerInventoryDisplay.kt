@@ -20,7 +20,7 @@ import org.bukkit.inventory.PlayerInventory
  * @param player Spieler, dem das Inventar gehört.
  * Bei mehreren Instanzen für den gleichen Spieler können Probleme auftreten!
  */
-class PlayerInventoryDisplay(override val player: Player) : MinecraftDisplay {
+class PlayerInventoryDisplay(override val player: Player, disableOtherInventories: Boolean = false) : MinecraftDisplay {
     //TODO optionale manager Klasse zur vermeidung von doppelten Spieler-Instanzen
 
     private val inventory: PlayerInventory = player.inventory
@@ -28,51 +28,65 @@ class PlayerInventoryDisplay(override val player: Player) : MinecraftDisplay {
     private var inUse = false
 
     override val clickEventIdentifier: ClickEventIdentifier = GuiClickEventIdentifier(player, inventory)
-    override val eventRegistrations: Set<EventRegistration<out EventListenerAdapter<out Event>, out Event>> = setOf(
-        EventRegistration(
-            LambdaEventIdentifier {
-                if (it.entity is Player) {
-                    if (it.entity as Player == this@PlayerInventoryDisplay.player) {
+    override val externalGuiModificationCancelRegistrations: Set<EventRegistration<out EventListenerAdapter<out Event>, out Event>> =
+        if (!disableOtherInventories) setOf(
+            EventRegistration(
+                LambdaEventIdentifier {
+                    // checking if the raw slot is lower than the inventory size to determine that the upper inventory is clicked,
+                    // is used because low minecraft versions (like 1.12) do not have InventoryView#getInventory(int) to
+                    // determine the affected inventory.
+                    if (it.view.bottomInventory == inventory && it.rawSlots.any { rs -> rs >= it.view.topInventory.size }) {
                         return@LambdaEventIdentifier true
                     }
-                }
-                return@LambdaEventIdentifier false
-            },
-            LambdaEventAction {
-                it.isCancelled = true
-            },
-            ItemPickupEventListenerAdapter::class
-        ),
-        EventRegistration(
-            LambdaEventIdentifier {
-                // checking if the raw slot is lower than the inventory size to determine that the upper inventory is clicked,
-                // is used because low minecraft versions (like 1.12) do not have InventoryView#getInventory(int) to
-                // determine the affected inventory.
-                if (it.view.bottomInventory == inventory && it.rawSlots.any { rs -> rs >= it.view.topInventory.size }) {
-                    return@LambdaEventIdentifier true
-                }
-                return@LambdaEventIdentifier false
-            },
-            LambdaEventAction {
-                it.isCancelled = true
-                it.result = Event.Result.DENY
-            },
-            ItemDragEventListenerAdapter::class
-        ),
-        EventRegistration(
-            LambdaEventIdentifier {
-                return@LambdaEventIdentifier it.whoClicked == player && it.view.bottomInventory == inventory &&
-                        (it.action == InventoryAction.MOVE_TO_OTHER_INVENTORY ||
-                                it.action == InventoryAction.HOTBAR_MOVE_AND_READD ||
-                                it.action == InventoryAction.HOTBAR_SWAP ||
-                                it.action == InventoryAction.COLLECT_TO_CURSOR)
-            },
-            LambdaEventAction {
-                it.isCancelled = true
-            },
-            ClickEventListenerAdapter::class
+                    return@LambdaEventIdentifier false
+                },
+                LambdaEventAction {
+                    it.isCancelled = true
+                    it.result = Event.Result.DENY
+                },
+                ItemDragEventListenerAdapter::class
+            ),
+            EventRegistration(
+                LambdaEventIdentifier {
+                    return@LambdaEventIdentifier it.whoClicked == player && it.view.bottomInventory == inventory &&
+                            (it.action == InventoryAction.MOVE_TO_OTHER_INVENTORY ||
+                                    it.action == InventoryAction.HOTBAR_MOVE_AND_READD ||
+                                    it.action == InventoryAction.HOTBAR_SWAP ||
+                                    it.action == InventoryAction.COLLECT_TO_CURSOR)
+                },
+                LambdaEventAction {
+                    it.isCancelled = true
+                },
+                ClickEventListenerAdapter::class
+            )
+        ) else setOf(
+            EventRegistration(
+                LambdaEventIdentifier {
+                    return@LambdaEventIdentifier it.whoClicked == player && it.clickedInventory != inventory
+                },
+                LambdaEventAction {
+                    it.isCancelled = true
+                },
+                ClickEventListenerAdapter::class
+            )
         )
-    )
+    override val additionalRegistrations: Set<EventRegistration<out EventListenerAdapter<out Event>, out Event>> =
+        setOf(
+            EventRegistration(
+                LambdaEventIdentifier {
+                    if (it.entity is Player) {
+                        if (it.entity as Player == this@PlayerInventoryDisplay.player) {
+                            return@LambdaEventIdentifier true
+                        }
+                    }
+                    return@LambdaEventIdentifier false
+                },
+                LambdaEventAction {
+                    it.isCancelled = true
+                },
+                ItemPickupEventListenerAdapter::class
+            )
+        )
 
     override fun generateCloseActionRegistration(action: () -> Unit): EventRegistration<out EventListenerAdapter<out Event>, out Event> =
         QuitEventRegistration(QuitEventPlayerIdentifier(player), LambdaEventAction { action() })

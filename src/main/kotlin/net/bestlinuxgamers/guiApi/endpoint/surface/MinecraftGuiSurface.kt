@@ -52,7 +52,8 @@ open class MinecraftGuiSurface(
         registerRegistration(
             display.generateCloseActionRegistration { @OptIn(EventDispatcherOnly::class) endpoint.performClose() }
         )
-        display.eventRegistrations.forEach { registerRegistration(it) }
+        display.externalGuiModificationCancelRegistrations.forEach { registerRegistration(it) }
+        display.additionalRegistrations.forEach { registerRegistration(it) }
     }
 
     /**

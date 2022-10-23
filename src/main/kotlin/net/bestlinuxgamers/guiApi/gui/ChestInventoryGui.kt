@@ -30,9 +30,10 @@ abstract class ChestInventoryGui(
     schedulerProvider: SchedulerProvider,
     tickSpeed: Long = 20,
     static: Boolean = false,
-    background: ItemStack? = null
+    background: ItemStack? = null,
+    disableOtherInventories: Boolean = false
 ) : ComponentEndpoint(
-    MinecraftGuiSurface(ChestInventoryDisplay(player, title, lines), eventDispatcher),
+    MinecraftGuiSurface(ChestInventoryDisplay(player, title, lines, disableOtherInventories), eventDispatcher),
     schedulerProvider,
     tickSpeed,
     static,
