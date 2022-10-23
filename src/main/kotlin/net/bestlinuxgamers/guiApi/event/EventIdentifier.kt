@@ -23,6 +23,11 @@ abstract class EventIdentifier<E : Event> {
 
 //lambda
 
+/**
+ * Identifiziert ein Event anhand einer vorher angegebenen Lambda-Funktion.
+ * @param identify Lambda, welche die Aktionen zum Identifizieren des Events beinhaltet
+ * @param E Event-Typ, welcher identifiziert werden soll
+ */
 class LambdaEventIdentifier<E : Event>(private val identify: (event: E) -> Boolean) : EventIdentifier<E>() {
     override fun isEvent(event: E): Boolean = identify(event)
 }
@@ -51,8 +56,7 @@ abstract class ClickEventIdentifier : EventIdentifier<InventoryClickEvent>()
  * @param player Spieler, auf den geprüft wird
  * @param inventory Inventar, welches benutzt werden soll
  */
-class GuiClickEventIdentifier(private val player: Player, private val inventory: Inventory) :
-    ClickEventIdentifier() {
+class GuiClickEventIdentifier(private val player: Player, private val inventory: Inventory) : ClickEventIdentifier() {
     override fun isEvent(event: InventoryClickEvent): Boolean =
         event.whoClicked == player && event.clickedInventory == inventory && event.slot >= 0
 }
@@ -69,8 +73,7 @@ abstract class CloseEventIdentifier : EventIdentifier<InventoryCloseEvent>()
  * @param player Spieler, auf den geprüft wird
  * @param inventory Inventar, welches benutzt werden soll
  */
-class GuiCloseEventIdentifier(private val player: Player, private val inventory: Inventory) :
-    CloseEventIdentifier() {
+class GuiCloseEventIdentifier(private val player: Player, private val inventory: Inventory) : CloseEventIdentifier() {
     override fun isEvent(event: InventoryCloseEvent): Boolean = event.player == player && event.inventory == inventory
 }
 
