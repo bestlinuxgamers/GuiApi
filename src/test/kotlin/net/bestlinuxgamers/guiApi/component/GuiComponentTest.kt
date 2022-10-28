@@ -228,6 +228,35 @@ internal class GuiComponentTest {
     }
 
     @Test
+    fun testGetLocalIndexOfComponentIndex() {
+        val comp1Reserved = ReservedSlots(
+            arrayOf(
+                arrayOf(true),
+                arrayOf(false, true)
+            )
+        )
+        val comp1 = AsymmetricTestComponent(comp1Reserved)
+
+        val comp2Reserved = ReservedSlots(
+            arrayOf(
+                arrayOf(false, true),
+                arrayOf(true)
+            )
+        )
+        val comp2 = AsymmetricTestComponent(comp2Reserved)
+
+        val instance = ResizableTestComponent(2, 2).apply {
+            setComponent(comp1, 0)
+            setComponent(comp2, 0)
+        }
+        Assertions.assertEquals(setOf(0), instance.getLocalIndexOfComponentIndex(comp1, 0))
+        Assertions.assertEquals(setOf(3), instance.getLocalIndexOfComponentIndex(comp1, 1))
+        Assertions.assertEquals(setOf(1), instance.getLocalIndexOfComponentIndex(comp2, 0))
+        Assertions.assertEquals(setOf(2), instance.getLocalIndexOfComponentIndex(comp2, 1))
+        Assertions.assertEquals(setOf<Int>(), instance.getLocalIndexOfComponentIndex(comp1, 2))
+    }
+
+    @Test
     fun testRenderSquare() {
         val target: Array<ItemStack?> =
             Array(16) { if (it < 8) ItemStack(Material.BARRIER) else ItemStack(Material.BEDROCK) }

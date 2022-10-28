@@ -201,6 +201,23 @@ abstract class GuiComponent(
     fun getComponentOfIndex(index: Int): GuiComponent? = components[index]?.component
 
     /**
+     * Gibt den Index von dieser Komponente zurück, auf dem der Index einer Unterkomponente liegt.
+     * @param component Unterkomponente, nach dessen [index] gesucht wird
+     * @param index Index der [component]
+     * @return Index (Slot) in dieser Komponente, auf dem der angegebene Unterkomponenten-Index liegt.
+     * Es wird ein Set zurückgegeben, da es möglich ist, dass ein Unterkomponenten-Index
+     * auf mehreren Slots dieser Komponente liegt.
+     */
+    fun getLocalIndexOfComponentIndex(component: GuiComponent, index: Int): Set<Int> {
+        return components.mapIndexed { idx, it ->
+            it?.let { it2 ->
+                if (it2.component == component && it2.index == index) return@mapIndexed idx
+            }
+            null
+        }.filterNotNull().toSet()
+    }
+
+    /**
      * @return alle untergeordneten Komponenten dieser Komponente
      */
     fun getComponents(): Set<GuiComponent> {
