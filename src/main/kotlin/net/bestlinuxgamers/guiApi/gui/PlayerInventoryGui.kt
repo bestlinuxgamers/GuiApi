@@ -27,8 +27,8 @@ abstract class PlayerInventoryGui(
     schedulerProvider: SchedulerProvider,
     tickSpeed: Long = 20,
     static: Boolean = false,
-    background: ItemStack? = null,
     smartRender: Boolean = true,
+    background: ItemStack? = null,
     disableOtherInventories: Boolean = false
 ) : ComponentEndpoint(
     MinecraftGuiSurface(PlayerInventoryDisplay(player, disableOtherInventories), eventDispatcher),
