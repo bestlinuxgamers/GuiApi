@@ -17,6 +17,7 @@ import org.bukkit.inventory.ItemStack
  * @param schedulerProvider Klasse zum registrieren von Minecraft schedulern
  * @param tickSpeed Die Schnelligkeit der GUI render Updates in Minecraft Ticks
  * @param static Ob die Komponente nur initial gerendert werden soll.
+ * @param smartRender Ob nur Komponenten mit detektierten Veränderungen gerendert werden sollen.
  * @param background Items für Slots, auf denen keine Komponente liegt
  * @see ChestInventoryDisplay
  * @see ComponentEndpoint
@@ -30,6 +31,7 @@ abstract class ChestInventoryGui(
     schedulerProvider: SchedulerProvider,
     tickSpeed: Long = 20,
     static: Boolean = false,
+    smartRender: Boolean = true,
     background: ItemStack? = null,
     disableOtherInventories: Boolean = false
 ) : ComponentEndpoint(
@@ -37,5 +39,6 @@ abstract class ChestInventoryGui(
     schedulerProvider,
     tickSpeed,
     static,
+    smartRender,
     background
 )

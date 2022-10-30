@@ -16,6 +16,7 @@ import org.bukkit.inventory.ItemStack
  * @param tickSpeed Die Schnelligkeit der GUI render Updates in Minecraft Ticks
  * @param static Ob die Komponente nur initial gerendert werden soll.
  * @param background Items für Slots, auf denen keine Komponente liegt
+ * @param smartRender Ob nur Komponenten mit detektierten Veränderungen gerendert werden sollen.
  * @see PlayerInventoryDisplay
  * @see ComponentEndpoint
  * @see MinecraftGuiSurface
@@ -27,11 +28,13 @@ abstract class PlayerInventoryGui(
     tickSpeed: Long = 20,
     static: Boolean = false,
     background: ItemStack? = null,
+    smartRender: Boolean = true,
     disableOtherInventories: Boolean = false
 ) : ComponentEndpoint(
     MinecraftGuiSurface(PlayerInventoryDisplay(player, disableOtherInventories), eventDispatcher),
     schedulerProvider,
     tickSpeed,
     static,
+    smartRender,
     background
 )

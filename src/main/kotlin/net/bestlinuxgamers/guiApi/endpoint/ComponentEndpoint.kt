@@ -16,6 +16,7 @@ import org.bukkit.scheduler.BukkitTask
  * @param schedulerProvider Klasse zum registrieren von Minecraft schedulern
  * @param tickSpeed Die Schnelligkeit der GUI render Updates in Minecraft Ticks
  * @param static Ob die Komponente nur initial gerendert werden soll ([GuiComponent.static])
+ * @param smartRender Ob nur Komponenten mit detektierten Veränderungen gerendert werden sollen ([GuiComponent.smartRender])
  * @param background Items für Slots, auf denen keine Komponente liegt ([GuiComponent.renderFallback])
  * @see GuiComponent
  */
@@ -25,8 +26,9 @@ abstract class ComponentEndpoint(
     private val schedulerProvider: SchedulerProvider,
     private val tickSpeed: Long = 20,
     static: Boolean = false,
+    smartRender: Boolean = true,
     background: ItemStack? = null
-) : GuiComponent(surface.generateReserved(), static, background) {
+) : GuiComponent(surface.generateReserved(), static, smartRender, background) {
 
     private var frameCount: Long = 0
     private var scheduler: BukkitTask? = null

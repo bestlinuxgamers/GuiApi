@@ -289,7 +289,7 @@ internal class GuiComponentTest {
             setComponent(ItemComponent(ItemStack(Material.COBBLESTONE)), 1)
             setComponent(comp2, 2)
         }
-        val instance = ResizableTestComponent(3, 4, renderFallback = ItemStack(Material.BEDROCK)).apply {
+        val instance = ResizableTestComponent(3, 4, ItemStack(Material.BEDROCK), smartRender = false).apply {
             setComponent(comp1, 0)
         }
 
@@ -309,10 +309,88 @@ internal class GuiComponentTest {
     }
 
     @Test
+    fun testSmartRender() {
+        val comp1Reserved = ReservedSlots(
+            arrayOf(
+                arrayOf(true),
+                arrayOf(false, true)
+            )
+        )
+        val testComponent = object :
+            GuiComponent(ReservedSlots(1, 1), false, true, ItemStack(Material.BEDROCK)) {
+            override fun setUp() {}
+
+            override fun beforeRender(frame: Long) {
+                if (frame >= 1.toLong()) throw IllegalStateException("Component rendered, even though the component didn't change!")
+            }
+
+        }
+        val comp1 = AsymmetricTestComponent(comp1Reserved, static = false, smartRender = true).apply {
+            setComponent(testComponent, 0)
+            setComponent(ItemComponent(ItemStack(Material.STONE)), 1)
+        }
+        val comp2Reserved = ReservedSlots(
+            arrayOf(
+                arrayOf(false, true),
+                arrayOf(true)
+            )
+        )
+        val comp2 = AsymmetricTestComponent(comp2Reserved, static = false).apply {
+            setComponent(ItemComponent(ItemStack(Material.BARRIER)), 0)
+            setComponent(ItemComponent(ItemStack(Material.COBBLESTONE)), 1)
+        }
+
+        val instance = ResizableTestComponent(2, 2, static = false, smartRender = true).apply {
+            setComponent(comp1, 0)
+            setComponent(comp2, 0)
+        }
+
+        val result1: Array<ItemStack> = Array(4) {
+            when (it) {
+                0 -> ItemStack(Material.BEDROCK)
+                1 -> ItemStack(Material.BARRIER)
+                2 -> ItemStack(Material.COBBLESTONE)
+                3 -> ItemStack(Material.STONE)
+                else -> ItemStack(Material.BELL)
+            }
+        }
+
+        Assertions.assertArrayEquals(result1, instance.renderNextFrame(0))
+
+        comp1.getComponentOfIndex(1)?.let { comp1.removeComponent(it) }
+            ?: throw IllegalStateException("If this is thrown the code is completely broke")
+        comp1.setComponent(ItemComponent(ItemStack(Material.STICK)), 1)
+
+        val result2 = result1.clone().apply { this[3] = ItemStack(Material.STICK) }
+
+        Assertions.assertArrayEquals(result2, instance.renderNextFrame(1))
+    }
+
+    @Test
+    fun testSmartRender2() {
+        val c1 = ResizableTestComponent(1, 1, ItemStack(Material.COBBLESTONE), static = false)
+        val instance = ResizableTestComponent(1, 1, smartRender = true, static = false).apply {
+            setComponent(
+                ResizableTestComponent(1, 1, smartRender = false, static = false)
+                    .apply { setComponent(c1, 0) },
+                0
+            )
+        }
+        val target = arrayOf(ItemStack(Material.COBBLESTONE))
+
+        Assertions.assertArrayEquals(target, instance.renderNextFrame(0))
+
+        c1.setComponent(ItemComponent(ItemStack(Material.STICK)), 0)
+        val target2 = arrayOf(ItemStack(Material.STICK))
+
+        Assertions.assertArrayEquals(target2, instance.renderNextFrame(1))
+    }
+
+    @Test
     fun testStatic() {
-        val instance = ResizableTestComponent(2, 2, renderFallback = ItemStack(Material.BEDROCK))
-        val comp1 = ResizableTestComponent(1, 2, renderFallback = ItemStack(Material.BARRIER))
-        val comp2 = ResizableTestComponent(1, 2, renderFallback = ItemStack(Material.STICK))
+        val instance = ResizableTestComponent(2, 2, ItemStack(Material.BEDROCK), static = true, smartRender = false)
+        val comp1 = ResizableTestComponent(1, 2, ItemStack(Material.BARRIER), static = true, smartRender = false)
+        val comp2 = ResizableTestComponent(1, 2, ItemStack(Material.STICK), static = true, smartRender = false)
 
         val target: Array<ItemStack> = Array(4) {
             when (it) {
@@ -375,15 +453,19 @@ internal class GuiComponentTest {
         height: Int,
         width: Int,
         renderFallback: ItemStack? = null,
-        static: Boolean = true
-    ) :
-        GuiComponent(ReservedSlots(height, width), static, renderFallback = renderFallback) {
+        static: Boolean = true,
+        smartRender: Boolean = true
+    ) : GuiComponent(ReservedSlots(height, width), static, smartRender = smartRender, renderFallback = renderFallback) {
         override fun setUp() {}
         override fun beforeRender(frame: Long) {}
     }
 
-    private class AsymmetricTestComponent(reserved: ReservedSlots, renderFallback: ItemStack? = null) :
-        GuiComponent(reserved, true, renderFallback = renderFallback) {
+    private class AsymmetricTestComponent(
+        reserved: ReservedSlots,
+        renderFallback: ItemStack? = null,
+        smartRender: Boolean = true,
+        static: Boolean = true
+    ) : GuiComponent(reserved, static, renderFallback = renderFallback, smartRender = smartRender) {
         override fun setUp() {}
         override fun beforeRender(frame: Long) {}
     }

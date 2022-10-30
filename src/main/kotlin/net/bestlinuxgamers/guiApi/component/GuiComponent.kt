@@ -12,14 +12,16 @@ import org.bukkit.inventory.ItemStack
  * Anschließend können die Komponenten gerendert [renderNextFrame] werden.
  * @param reservedSlots Fläche der Komponente
  * @param static Ob die Komponente nur einmal gerendert werden soll.
- * Dies wird empfohlen, wenn die Komponente keine Animationen o.ä. enthält.
+ * Dies wird empfohlen, wenn die Komponente keine Animationen/Veränderungen enthält.
  * Beachte: [beforeRender] wird nur einmal aufgerufen!
+ * @param smartRender Ob nur Komponenten mit detektierten Veränderungen gerendert werden sollen.
  * @param renderFallback Item, welches auf reservierte aber nicht gerenderte Slots gesetzt wird
  */
 @Suppress("MemberVisibilityCanBePrivate")
 abstract class GuiComponent(
     val reservedSlots: ReservedSlots,
-    val static: Boolean = false, //TODO dynamic (erst bei Änderung in Komponenten rendern)
+    val static: Boolean = false,
+    val smartRender: Boolean = true,
     val renderFallback: ItemStack? = null
 ) {
 
@@ -31,6 +33,8 @@ abstract class GuiComponent(
     private var lastRender: Array<ItemStack?>? = null
 
     internal fun getLastRender() = lastRender?.clone()
+
+    private val changedSlots: MutableSet<Int> = mutableSetOf()
 
     //locks
     private var hook: GuiComponent? = null
@@ -157,6 +161,7 @@ abstract class GuiComponent(
         component.hook(this)
         componentReservedMapped.forEachIndexed { index, mappedSlot ->
             components[mappedSlot] = ComponentIndexMap(component, index)
+            slotChanged(mappedSlot)
         }
     }
 
@@ -171,6 +176,7 @@ abstract class GuiComponent(
         components.forEachIndexed { index, componentMap ->
             if (componentMap?.component == component) {
                 components[index] = null
+                slotChanged(index)
             }
         }
     }
@@ -180,6 +186,17 @@ abstract class GuiComponent(
      */
     fun removeAllComponents() {
         getComponents().forEach { removeComponent(it) }
+    }
+
+    /**
+     * Speichert, dass sich ein Slot verändert hat und beim nächsten smartRender Vorgang erneut gerendert werden soll.
+     * Diese Information wird auch an alle übergeordneten Komponenten weitergegeben.
+     * @see smartRender
+     */
+    fun slotChanged(slot: Int) {
+        changedSlots.add(slot)
+        val parent = getParentComponent() ?: return
+        parent.getLocalIndexOfComponentIndex(this, slot).forEach { parent.slotChanged(it) }
     }
 
     //component getters
@@ -230,32 +247,46 @@ abstract class GuiComponent(
      * Rendert das nächste Bild unter Berücksichtigung aller Eigenschaften der Komponente
      * @param frame Anzahl des Rendervorgangs
      * @see render
+     * @see smartRender
      */
     internal fun renderNextFrame(frame: Long): Array<ItemStack?> {
         if (static) { //TODO statische manuell neu rendern
             lastRender?.let { return it }
         }
         beforeRender(frame)
-        return render(frame).also { lastRender = it }
+        return (if (smartRender) smartRender(frame) else render(frame)).also { lastRender = it }
     }
 
     /**
-     * Rendert das nächste Bild
+     * Rendert das nächste Bild.
      * @param frame Anzahl des Rendervorgangs
      */
-    internal open fun render(frame: Long): Array<ItemStack?> {
-        val renderResults: MutableMap<GuiComponent, RenderResultDistributor> = mutableMapOf()
-        val output: Array<ItemStack?> = Array(reservedSlots.totalReserved) { renderFallback } //TODO render in lambda des Konstruktors des Arrays
-
-        components.forEachIndexed { index, it ->
-            if (it != null) {
-                val component: GuiComponent = it.component
-                //renderOrCache
-                output[index] = (renderResults[component]
-                    ?: RenderResultDistributor(component.renderNextFrame(frame)).also { renderResults[component] = it }
-                        ).next()
-            }
+    internal open fun render(frame: Long): Array<ItemStack?> { //TODO @RenderOnly
+        changedSlots.clear()
+        val renderManager = RenderManager(frame)
+        return Array(reservedSlots.totalReserved) {
+            val compIndex = components[it] ?: return@Array renderFallback
+            return@Array renderManager.getComponentIndex(compIndex.component, compIndex.index) ?: renderFallback
         }
+    }
+
+    /**
+     * Rendert das nächste Bild.
+     * Dabei werden nur Komponenten gerendert, welche auf Slots liegen, die verändert wurden.
+     * Bei nicht veränderten Komponenten werden die Ergebnisse des letzten render-Vorgangs benutzt.
+     * @param frame Anzahl des Rendervorgangs
+     * @see slotChanged
+     * @see render
+     */
+    internal open fun smartRender(frame: Long): Array<ItemStack?> {
+        val output = getLastRender() ?: return render(frame)
+        val renderManager = RenderManager(frame)
+
+        changedSlots.forEach {
+            val compIndex = components[it] ?: return@forEach
+            output[it] = renderManager.getComponentIndex(compIndex.component, compIndex.index)
+        }
+        changedSlots.clear()
         return output
     }
 
@@ -303,15 +334,25 @@ abstract class GuiComponent(
     private data class ComponentIndexMap(val component: GuiComponent, val index: Int)
 
     /**
-     * Klasse zum einzelnen Abfragen der Slots eines render Ergebnisses
-     * @param result render Ergebnis
+     * Klasse zum Zwischenspeichern von den render-Ergebnissen der Unterkomponenten.
+     * @param frame Anzahl des Rendervorgangs
      */
-    private class RenderResultDistributor(val result: Array<ItemStack?>) {
-        private var lastSlot = 0
+    private class RenderManager(private val frame: Long) {
+
+        private val renderResults: MutableMap<GuiComponent, Array<ItemStack?>> = mutableMapOf()
 
         /**
-         * @return Inhalt des nächsten Slots des [result]
+         * Gibt einen gewissen Slot eines render-Ergebnisses zurück.
+         * Wenn noch kein render-Ergebnis der angegebenen Komponente vorliegt, wird diese gerendert.
+         * @param component Komponente, aus dessen render-Ergebnis ein Slot abgefragt wird
+         * @param index Slot, welcher aus dem render-Ergebnis benötigt wird
+         * @return gerendertes Item auf dem Slot der Komponente
          */
-        fun next() = result[lastSlot++]
+        fun getComponentIndex(component: GuiComponent, index: Int): ItemStack? {
+            return (renderResults[component]
+                ?: component.renderNextFrame(frame)
+                    .also { renderResults[component] = it }
+                    )[index]
+        }
     }
 }
