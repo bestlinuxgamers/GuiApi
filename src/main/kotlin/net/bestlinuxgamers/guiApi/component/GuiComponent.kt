@@ -286,8 +286,8 @@ abstract class GuiComponent(
         val renderManager = RenderManager(frame)
 
         changedSlots.forEach {
-            val compIndex = components[it] ?: return@forEach
-            output[it] = renderManager.getComponentIndex(compIndex.component, compIndex.index)
+            output[it] = components[it]?.let { it2 -> renderManager.getComponentIndex(it2.component, it2.index) }
+                ?: renderFallback
         }
         changedSlots.clear()
         return output
