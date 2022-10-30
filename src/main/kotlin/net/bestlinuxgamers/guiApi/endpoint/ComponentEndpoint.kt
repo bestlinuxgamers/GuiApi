@@ -1,6 +1,7 @@
 package net.bestlinuxgamers.guiApi.endpoint
 
 import net.bestlinuxgamers.guiApi.component.GuiComponent
+import net.bestlinuxgamers.guiApi.component.RenderOnly
 import net.bestlinuxgamers.guiApi.endpoint.surface.GuiSurfaceInterface
 import net.bestlinuxgamers.guiApi.endpoint.surface.SurfaceManagerOnly
 import net.bestlinuxgamers.guiApi.event.EventDispatcherOnly
@@ -45,6 +46,7 @@ abstract class ComponentEndpoint(
     fun open() {
         if (surface.isOpened()) return
 
+        @OptIn(RenderOnly::class)
         surface.open(renderNext())
         startUpdateScheduler()
     }
@@ -93,6 +95,7 @@ abstract class ComponentEndpoint(
      * Rendert das nächste Bild
      * @see [renderNextFrame]
      */
+    @RenderOnly
     private fun renderNext() = renderNextFrame(frameCount++)
 
     //scheduler
@@ -121,6 +124,7 @@ abstract class ComponentEndpoint(
      */
     private fun performUpdateTick() {
         val lastRender = super.getLastRender()
+        @OptIn(RenderOnly::class)
         surface.updateItems(renderNext(), lastRender)
         //TODO was, wenn render länger, als tickSpeed benötigt //TODO Items sync updaten
     }

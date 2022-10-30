@@ -144,6 +144,7 @@ internal class GuiComponentTest {
 
     }
 
+    @OptIn(RenderOnly::class)
     @Test
     fun testRemoveComponent() {
         val instance = ResizableTestComponent(2, 2)
@@ -256,6 +257,7 @@ internal class GuiComponentTest {
         Assertions.assertEquals(setOf<Int>(), instance.getLocalIndexOfComponentIndex(comp1, 2))
     }
 
+    @OptIn(RenderOnly::class)
     @Test
     fun testRenderSquare() {
         val target: Array<ItemStack?> =
@@ -270,6 +272,7 @@ internal class GuiComponentTest {
         Assertions.assertArrayEquals(target, result)
     }
 
+    @OptIn(RenderOnly::class)
     @Test
     fun testRender() {
         val reserved = ReservedSlots(
@@ -308,6 +311,7 @@ internal class GuiComponentTest {
         Assertions.assertArrayEquals(target, instance.render(0))
     }
 
+    @OptIn(RenderOnly::class)
     @Test
     fun testSmartRender() {
         val comp1Reserved = ReservedSlots(
@@ -366,6 +370,7 @@ internal class GuiComponentTest {
         Assertions.assertArrayEquals(result2, instance.renderNextFrame(1))
     }
 
+    @OptIn(RenderOnly::class)
     @Test
     fun testSmartRender2() {
         val c1 = ResizableTestComponent(1, 1, ItemStack(Material.COBBLESTONE), static = false)
@@ -386,6 +391,7 @@ internal class GuiComponentTest {
         Assertions.assertArrayEquals(target2, instance.renderNextFrame(1))
     }
 
+    @OptIn(RenderOnly::class)
     @Test
     fun testStatic() {
         val instance = ResizableTestComponent(2, 2, ItemStack(Material.BEDROCK), static = true, smartRender = false)
@@ -407,6 +413,7 @@ internal class GuiComponentTest {
         Assertions.assertArrayEquals(target, instance.renderNextFrame(1))
     }
 
+    @OptIn(RenderOnly::class)
     @Test
     fun testSetup() {
         class TestComponent : GuiComponent(ReservedSlots(1, 1), true, renderFallback = ItemStack(Material.BARRIER)) {
@@ -423,6 +430,7 @@ internal class GuiComponentTest {
         Assertions.assertArrayEquals(target, instance.renderNextFrame(0))
     }
 
+    @OptIn(RenderOnly::class)
     @Test
     fun testBeforeRender() {
         class TestComponent : GuiComponent(ReservedSlots(1, 1), false) {

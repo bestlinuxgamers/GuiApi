@@ -249,6 +249,7 @@ abstract class GuiComponent(
      * @see render
      * @see smartRender
      */
+    @RenderOnly
     internal fun renderNextFrame(frame: Long): Array<ItemStack?> {
         if (static) { //TODO statische manuell neu rendern
             lastRender?.let { return it }
@@ -261,6 +262,7 @@ abstract class GuiComponent(
      * Rendert das nächste Bild.
      * @param frame Anzahl des Rendervorgangs
      */
+    @RenderOnly
     internal open fun render(frame: Long): Array<ItemStack?> { //TODO @RenderOnly
         changedSlots.clear()
         val renderManager = RenderManager(frame)
@@ -278,6 +280,7 @@ abstract class GuiComponent(
      * @see slotChanged
      * @see render
      */
+    @RenderOnly
     internal open fun smartRender(frame: Long): Array<ItemStack?> {
         val output = getLastRender() ?: return render(frame)
         val renderManager = RenderManager(frame)
@@ -348,6 +351,7 @@ abstract class GuiComponent(
          * @param index Slot, welcher aus dem render-Ergebnis benötigt wird
          * @return gerendertes Item auf dem Slot der Komponente
          */
+        @RenderOnly
         fun getComponentIndex(component: GuiComponent, index: Int): ItemStack? {
             return (renderResults[component]
                 ?: component.renderNextFrame(frame)
