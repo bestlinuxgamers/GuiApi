@@ -430,34 +430,6 @@ internal class GuiComponentTest {
         Assertions.assertArrayEquals(target, instance.renderNextFrame(0))
     }
 
-    //TODO ZU ComponentEndpointTest verschieben, da beforeRender dort dispatched wird
-    /*@OptIn(RenderOnly::class)
-    @Test
-    fun testBeforeRender() {
-        class TestComponent : GuiComponent(ReservedSlots(1, 1), false) {
-            override fun setUp() {}
-
-            override fun beforeRender(frame: Long) {
-                when (frame) {
-                    1.toLong() -> {
-                        removeAllComponents()
-                        setComponent(ItemComponent(ItemStack(Material.STONE)), 0)
-                    }
-                }
-            }
-        }
-
-        val instance = TestComponent()
-        val target1 = Array(1) { ItemStack(Material.STICK) }
-        val target2 = Array(1) { ItemStack(Material.STONE) }
-
-        instance.setComponent(ResizableTestComponent(1, 1, renderFallback = ItemStack(Material.STICK)), 0)
-
-        Assertions.assertArrayEquals(target1, instance.renderNextFrame(0))
-        Assertions.assertArrayEquals(target2, instance.renderNextFrame(1))
-    }*/
-
-
     private class ResizableTestComponent(
         height: Int,
         width: Int,
