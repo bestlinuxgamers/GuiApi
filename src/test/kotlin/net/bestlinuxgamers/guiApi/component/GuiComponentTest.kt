@@ -229,6 +229,77 @@ internal class GuiComponentTest {
     }
 
     @Test
+    fun testGetComponentIndexToLocalIndexMap() {
+        val comp1Reserved = ReservedSlots(
+            arrayOf(
+                arrayOf(true),
+                arrayOf(false, true)
+            )
+        )
+        val comp1 = AsymmetricTestComponent(comp1Reserved)
+
+        val comp2Reserved = ReservedSlots(
+            arrayOf(
+                arrayOf(false, true),
+                arrayOf(true)
+            )
+        )
+        val comp2 = AsymmetricTestComponent(comp2Reserved)
+
+        val instance = ResizableTestComponent(2, 2).apply {
+            setComponent(comp1, 0)
+            setComponent(comp2, 0)
+        }
+        val target = mapOf(
+            0 to setOf(0),
+            1 to setOf(3)
+        )
+
+        val target2 = mapOf(
+            0 to setOf(1),
+            1 to setOf(2)
+        )
+        Assertions.assertEquals(target, instance.getComponentIndexToLocalIndexMap(comp1))
+        Assertions.assertEquals(target2, instance.getComponentIndexToLocalIndexMap(comp2))
+    }
+
+
+    @Test
+    fun testGetLocalIndexToComponentIndexMap() {
+        val comp1Reserved = ReservedSlots(
+            arrayOf(
+                arrayOf(true),
+                arrayOf(false, true)
+            )
+        )
+        val comp1 = AsymmetricTestComponent(comp1Reserved)
+
+        val comp2Reserved = ReservedSlots(
+            arrayOf(
+                arrayOf(false, true),
+                arrayOf(true)
+            )
+        )
+        val comp2 = AsymmetricTestComponent(comp2Reserved)
+
+        val instance = ResizableTestComponent(2, 2).apply {
+            setComponent(comp1, 0)
+            setComponent(comp2, 0)
+        }
+        val target = mapOf(
+            0 to 0,
+            3 to 1
+        )
+
+        val target2 = mapOf(
+            1 to 0,
+            2 to 1
+        )
+        Assertions.assertEquals(target, instance.getLocalIndexToComponentIndexMap(comp1))
+        Assertions.assertEquals(target2, instance.getLocalIndexToComponentIndexMap(comp2))
+    }
+
+    @Test
     fun testGetLocalIndexOfComponentIndex() {
         val comp1Reserved = ReservedSlots(
             arrayOf(

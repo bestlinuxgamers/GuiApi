@@ -2,6 +2,7 @@ package net.bestlinuxgamers.guiApi.component
 
 import net.bestlinuxgamers.guiApi.component.util.*
 import net.bestlinuxgamers.guiApi.event.EventDispatcherOnly
+import net.bestlinuxgamers.guiApi.extensions.getValueSaved
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemStack
 
@@ -35,6 +36,7 @@ abstract class GuiComponent(
     internal fun getLastRender() = lastRender?.clone()
 
     private val changedSlots: MutableSet<Int> = mutableSetOf()
+    private val changedComponents: MutableSet<GuiComponent> = mutableSetOf()
 
     //locks
     private var hook: GuiComponent? = null
@@ -209,6 +211,12 @@ abstract class GuiComponent(
         parent.getLocalIndexOfComponentIndex(this, slot).forEach { parent.slotChanged(it) }
     }
 
+    fun componentChanged(component: GuiComponent) {
+        changedComponents.add(component)
+        val parent = getParentComponent() ?: return
+        parent.componentChanged(this)
+    }
+
     //component getters
 
     /**
@@ -226,6 +234,40 @@ abstract class GuiComponent(
      * @return Komponente an dem Index [index]
      */
     fun getComponentOfIndex(index: Int): GuiComponent? = components[index]?.component
+
+    /**
+     * Gibt die Indexe einer Unterkomponente mit den jeweiligen Indexen dieser Komponente,
+     * auf denen der Unterkomponenten-Index liegt, zurück.
+     * @param component Komponente, nach dessen Referenzen in dieser Komponente gesucht werden soll
+     * @return Map aus dem Index der [component] zu einem Set aus Indexen,
+     * auf denen jener [component]-Index auf dieser Komponente liegt.
+     */
+    fun getComponentIndexToLocalIndexMap(component: GuiComponent): Map<Int, Set<Int>> {
+        val output = mutableMapOf<Int, MutableSet<Int>>().withDefault { mutableSetOf() }
+        components.forEachIndexed { index, cim ->
+            if (cim != null && cim.component == component) {
+                output.getValueSaved(cim.index).add(index)
+            }
+        }
+        return output
+    }
+
+    /**
+     * Gibt die Indexe dieser Komponente zu den Indexen einer gesuchten Komponente,
+     * welche auf dem Index dieser Komponente liegen, zurück.
+     * @param component Komponente, nach dessen Referenzen in dieser Komponente gesucht werden soll
+     * @return Map aus dem Index dieser Komponente zu dem Index der [component],
+     * welcher auf diesem Index liegt.
+     */
+    fun getLocalIndexToComponentIndexMap(component: GuiComponent): Map<Int, Int> {
+        val output = mutableMapOf<Int, Int>()
+        components.forEachIndexed { index, cim ->
+            if (cim != null && cim.component == component) {
+                output[index] = cim.index
+            }
+        }
+        return output
+    }
 
     /**
      * Gibt den Index von dieser Komponente zurück, auf dem der Index einer Unterkomponente liegt.
@@ -368,5 +410,9 @@ abstract class GuiComponent(
                     .also { renderResults[component] = it }
                     )[index]
         }
+
+        @RenderOnly
+        fun getRenderedComponents() = renderResults.keys
+
     }
 }
