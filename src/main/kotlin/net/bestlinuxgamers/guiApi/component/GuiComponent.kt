@@ -124,6 +124,16 @@ abstract class GuiComponent(
 
     //TODO fun addBeforeRender((Int) -> Unit) zum Hinzufügen von Aktionen von außen. Dafür evtl. Liste an lambdas, eine ist immer {setUp()}
 
+    //- call dispatchers
+
+    /**
+     * Ruft [beforeRender] für diese und alle untergeordneten Komponenten auf.
+     */
+    internal fun dispatchBeforeRender(frame: Long) { //TODO @OnlyDispatcher
+        beforeRender(frame)
+        getComponents().forEach { it.dispatchBeforeRender(frame) }
+    }
+
     //editing
 
     /**
@@ -254,7 +264,7 @@ abstract class GuiComponent(
         if (static) { //TODO statische manuell neu rendern
             lastRender?.let { return it }
         }
-        beforeRender(frame)
+        //TODO evtl. onRender() / afterRender() - nur für zuvor gerenderte
         return (if (smartRender) smartRender(frame) else render(frame)).also { lastRender = it }
     }
 

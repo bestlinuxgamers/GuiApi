@@ -92,11 +92,15 @@ abstract class ComponentEndpoint(
     //render
 
     /**
-     * Rendert das nächste Bild
+     * Rendert das nächste Bild und sendet vorher den [beforeRender] call.
      * @see [renderNextFrame]
      */
     @RenderOnly
-    private fun renderNext() = renderNextFrame(frameCount++)
+    private fun renderNext(): Array<ItemStack?> {
+        val frame = frameCount++
+        dispatchBeforeRender(frame)
+        return renderNextFrame(frame)
+    }
 
     //scheduler
 
