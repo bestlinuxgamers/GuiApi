@@ -394,11 +394,12 @@ internal class GuiComponentTest {
         val testComponent = object :
             GuiComponent(ReservedSlots(1, 1), false, true, ItemStack(Material.BEDROCK)) {
             override fun setUp() {}
+            override fun beforeRender(frame: Long) {}
 
-            override fun beforeRender(frame: Long) { //TODO BUG: wird nie aufgerufen - Ersatzmethode benutzen
+            override fun smartRender(frame: Long): Array<ItemStack?> {
                 if (frame >= 1.toLong()) throw IllegalStateException("Component rendered, even though the component didn't change!")
+                return super.smartRender(frame)
             }
-
         }
         val comp1 = AsymmetricTestComponent(comp1Reserved, static = false, smartRender = true).apply {
             setComponent(testComponent, 0)
