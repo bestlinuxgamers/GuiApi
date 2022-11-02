@@ -13,6 +13,7 @@ class ItemComponent(private val item: ItemStack) :
     GuiComponent(ReservedSlots(1, 1), true, false, null) {
     override fun setUp() {}
     override fun beforeRender(frame: Long) {}
+    override fun onRenderTick(tick: Long, frame: Long) {}
 
     @RenderOnly
     override fun render(frame: Long): Array<ItemStack?> {

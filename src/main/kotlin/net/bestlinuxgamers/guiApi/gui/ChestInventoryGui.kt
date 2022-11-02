@@ -15,6 +15,7 @@ import org.bukkit.inventory.ItemStack
  * @param lines Zeilen des Inventars (1 - 6)
  * @param eventDispatcher  Der Event-Manager für Events der Oberfläche
  * @param schedulerProvider Klasse zum registrieren von Minecraft schedulern
+ * @param renderTick Ob das Gui im Intervall von [tickSpeed] erneut gerendert werden soll
  * @param tickSpeed Die Schnelligkeit der GUI render Updates in Minecraft Ticks
  * @param static Ob die Komponente nur initial gerendert werden soll.
  * @param smartRender Ob nur Komponenten mit detektierten Veränderungen gerendert werden sollen.
@@ -29,6 +30,7 @@ abstract class ChestInventoryGui(
     lines: Int,
     eventDispatcher: MinecraftGuiEventHandler,
     schedulerProvider: SchedulerProvider,
+    renderTick: Boolean = true,
     tickSpeed: Long = 20,
     static: Boolean = false,
     smartRender: Boolean = true,
@@ -37,6 +39,7 @@ abstract class ChestInventoryGui(
 ) : ComponentEndpoint(
     MinecraftGuiSurface(ChestInventoryDisplay(player, title, lines, disableOtherInventories), eventDispatcher),
     schedulerProvider,
+    renderTick,
     tickSpeed,
     static,
     smartRender,

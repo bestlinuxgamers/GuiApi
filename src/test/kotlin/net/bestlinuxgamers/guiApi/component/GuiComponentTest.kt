@@ -181,6 +181,7 @@ internal class GuiComponentTest {
         class TestComponent : GuiComponent(ReservedSlots(1, 1), true) {
             override fun setUp() {}
             override fun beforeRender(frame: Long) {}
+            override fun onRenderTick(tick: Long, frame: Long) {}
         }
 
         val instance = ResizableTestComponent(4, 4)
@@ -395,6 +396,7 @@ internal class GuiComponentTest {
             GuiComponent(ReservedSlots(1, 1), false, true, ItemStack(Material.BEDROCK)) {
             override fun setUp() {}
             override fun beforeRender(frame: Long) {}
+            override fun onRenderTick(tick: Long, frame: Long) {}
 
             override fun smartRender(frame: Long): Array<ItemStack?> {
                 if (frame >= 1.toLong()) throw IllegalStateException("Component rendered, even though the component didn't change!")
@@ -494,6 +496,7 @@ internal class GuiComponentTest {
             }
 
             override fun beforeRender(frame: Long) {}
+            override fun onRenderTick(tick: Long, frame: Long) {}
         }
 
         val instance = TestComponent()
@@ -511,6 +514,7 @@ internal class GuiComponentTest {
     ) : GuiComponent(ReservedSlots(height, width), static, smartRender = smartRender, renderFallback = renderFallback) {
         override fun setUp() {}
         override fun beforeRender(frame: Long) {}
+        override fun onRenderTick(tick: Long, frame: Long) {}
     }
 
     private class AsymmetricTestComponent(
@@ -521,6 +525,7 @@ internal class GuiComponentTest {
     ) : GuiComponent(reserved, static, renderFallback = renderFallback, smartRender = smartRender) {
         override fun setUp() {}
         override fun beforeRender(frame: Long) {}
+        override fun onRenderTick(tick: Long, frame: Long) {}
     }
 
     companion object {

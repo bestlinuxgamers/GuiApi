@@ -126,6 +126,12 @@ abstract class GuiComponent(
 
     //TODO fun addBeforeRender((Int) -> Unit) zum Hinzufügen von Aktionen von außen. Dafür evtl. Liste an lambdas, eine ist immer {setUp()}
 
+    /**
+     * Wird vor dem Rendern durch den [net.bestlinuxgamers.guiApi.endpoint.ComponentEndpoint.renderTick] aufgerufen.
+     * Damit wird es noch vor [beforeRender] aufgerufen.
+     */
+    abstract fun onRenderTick(tick: Long, frame: Long)
+
     //- call dispatchers
 
     /**
@@ -315,7 +321,7 @@ abstract class GuiComponent(
      * @param frame Anzahl des Rendervorgangs
      */
     @RenderOnly
-    internal open fun render(frame: Long): Array<ItemStack?> { //TODO @RenderOnly
+    internal open fun render(frame: Long): Array<ItemStack?> {
         changedSlots.clear()
         val renderManager = RenderManager(frame)
         return Array(reservedSlots.totalReserved) {

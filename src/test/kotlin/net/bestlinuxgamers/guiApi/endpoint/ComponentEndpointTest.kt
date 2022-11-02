@@ -41,10 +41,11 @@ internal class ComponentEndpointTest {
             mockk(relaxed = true)
         }
 
-        val ep = object : ComponentEndpoint(mockSurface, mockScheduler) {
+        val ep = object : ComponentEndpoint(mockSurface, mockScheduler, renderTick = true) {
             override fun setUp() {}
 
             override fun beforeRender(frame: Long) {}
+            override fun onRenderTick(tick: Long, frame: Long) {}
         }
 
         class TestComponent : GuiComponent(ReservedSlots(1, 1), false) {
@@ -58,6 +59,8 @@ internal class ComponentEndpointTest {
                     }
                 }
             }
+
+            override fun onRenderTick(tick: Long, frame: Long) {}
         }
 
         val instance = TestComponent()
@@ -72,6 +75,45 @@ internal class ComponentEndpointTest {
 
         schedulerRunnable.run()
         Assertions.assertArrayEquals(target2, renderResults)
+    }
+
+    @Test
+    fun testOnRenderTick() {
+        val mockSurface: GuiSurfaceInterface = mockk(relaxed = true)
+
+        @OptIn(SurfaceManagerOnly::class)
+        every { mockSurface.generateReserved() } returns ReservedSlots(1, 1)
+
+        val mockScheduler: SchedulerProvider = mockk(relaxed = true)
+
+        lateinit var schedulerRunnable: Runnable
+        every { mockScheduler.runTaskTimerAsynchronously(any(), any(), any()) } answers {
+            schedulerRunnable = it.invocation.args[2] as Runnable
+            mockk(relaxed = true)
+        }
+
+        var lastCallTick: Long? = null
+        var lastCallFrame: Long? = null
+
+        val ep = object :
+            ComponentEndpoint(mockSurface, mockScheduler, renderTick = true, background = ItemStack(Material.STICK)) {
+            override fun setUp() {}
+
+            override fun beforeRender(frame: Long) {}
+
+            override fun onRenderTick(tick: Long, frame: Long) {
+                lastCallTick = tick
+                lastCallFrame = frame
+            }
+        }
+
+        ep.open()
+        Assertions.assertEquals(null, lastCallTick)
+        Assertions.assertEquals(null, lastCallFrame)
+
+        schedulerRunnable.run()
+        Assertions.assertEquals(lastCallTick, 0)
+        Assertions.assertEquals(lastCallFrame, 1)
     }
 
     companion object {

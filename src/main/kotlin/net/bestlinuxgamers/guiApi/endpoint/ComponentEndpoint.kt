@@ -15,7 +15,8 @@ import org.bukkit.scheduler.BukkitTask
  * dem Event-Empfang/Weiterleiten zuständig ist.
  * @param surface Grafische Oberfläche
  * @param schedulerProvider Klasse zum registrieren von Minecraft schedulern
- * @param tickSpeed Die Schnelligkeit der GUI render Updates in Minecraft Ticks
+ * @param renderTick Ob das Gui im Intervall von [tickSpeed] erneut gerendert werden soll
+ * @param tickSpeed Die Schnelligkeit der GUI render Updates von [renderTick] in Minecraft Ticks
  * @param static Ob die Komponente nur initial gerendert werden soll ([GuiComponent.static])
  * @param smartRender Ob nur Komponenten mit detektierten Veränderungen gerendert werden sollen ([GuiComponent.smartRender])
  * @param background Items für Slots, auf denen keine Komponente liegt ([GuiComponent.renderFallback])
@@ -25,6 +26,7 @@ import org.bukkit.scheduler.BukkitTask
 abstract class ComponentEndpoint(
     private val surface: GuiSurfaceInterface,
     private val schedulerProvider: SchedulerProvider,
+    private val renderTick: Boolean = true,
     private val tickSpeed: Long = 20,
     static: Boolean = false,
     smartRender: Boolean = true,
@@ -33,6 +35,7 @@ abstract class ComponentEndpoint(
 
     private var frameCount: Long = 0
     private var scheduler: BukkitTask? = null
+    private var tickCount: Long = 0
 
     init {
         super.lock()
@@ -102,15 +105,30 @@ abstract class ComponentEndpoint(
         return renderNextFrame(frame)
     }
 
+    /**
+     * Rendert das nächste Bild und schreibt dieses in das [surface]
+     * @see renderNext
+     */
+    @RenderOnly
+    private fun performSurfaceUpdate() {
+        val lastRender = getLastRender()
+        surface.updateItems(renderNext(), lastRender)
+        //TODO was, wenn render länger, als tickSpeed benötigt //TODO Items sync updaten
+    }
+
     //scheduler
 
     /**
      * Startet den update Tick scheduler
      */
     private fun startUpdateScheduler() {
-        if ((scheduler != null) || super.static) return
+        if (!renderTick || super.static || scheduler != null) return
 
-        scheduler = schedulerProvider.runTaskTimerAsynchronously(tickSpeed, tickSpeed) { performUpdateTick() }
+        scheduler = schedulerProvider.runTaskTimerAsynchronously(tickSpeed, tickSpeed) {
+            onRenderTick(tickCount++, frameCount)
+            @OptIn(RenderOnly::class)
+            performSurfaceUpdate()
+        }
     }
 
     /**
@@ -118,19 +136,9 @@ abstract class ComponentEndpoint(
      * @see startUpdateScheduler
      */
     private fun stopUpdateScheduler() {
-        if (!static) {
+        if (!static && renderTick) {
             scheduler?.cancel().also { scheduler = null }
         }
-    }
-
-    /**
-     * Führt den nächsten update Tick aus
-     */
-    private fun performUpdateTick() {
-        val lastRender = super.getLastRender()
-        @OptIn(RenderOnly::class)
-        surface.updateItems(renderNext(), lastRender)
-        //TODO was, wenn render länger, als tickSpeed benötigt //TODO Items sync updaten
     }
 
 }
