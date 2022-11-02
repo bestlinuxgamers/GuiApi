@@ -16,7 +16,7 @@ import org.bukkit.inventory.ItemStack
  */
 class MergedInventoryDisplay(override val player: Player, chestTitle: String, chestLines: Int) : MinecraftDisplay {
 
-    private val chestInventoryDisplay = ChestInventoryDisplay(player, chestTitle, chestLines)
+    private val chestInventoryDisplay = ChestInventoryDisplay(player, chestTitle, chestLines, false)
     private val playerInventoryDisplay = PlayerInventoryDisplay(player)
 
     override val clickEventIdentifier: EventIdentifier<InventoryClickEvent> =
