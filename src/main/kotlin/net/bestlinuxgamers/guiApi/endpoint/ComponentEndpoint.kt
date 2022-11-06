@@ -17,6 +17,7 @@ import org.bukkit.scheduler.BukkitTask
  * @param schedulerProvider Klasse zum registrieren von Minecraft schedulern
  * @param renderTick Ob das Gui im Intervall von [tickSpeed] erneut gerendert werden soll
  * @param tickSpeed Die Schnelligkeit der GUI render Updates von [renderTick] in Minecraft Ticks
+ * @param onDemandRender Ob das manuelle Auslösen des Rendervorgangs durch eine Komponente erlaubt sein soll
  * @param static Ob die Komponente nur initial gerendert werden soll ([GuiComponent.static])
  * @param smartRender Ob nur Komponenten mit detektierten Veränderungen gerendert werden sollen ([GuiComponent.smartRender])
  * @param background Items für Slots, auf denen keine Komponente liegt ([GuiComponent.renderFallback])
@@ -25,9 +26,10 @@ import org.bukkit.scheduler.BukkitTask
 @OptIn(SurfaceManagerOnly::class)
 abstract class ComponentEndpoint(
     private val surface: GuiSurfaceInterface,
-    private val schedulerProvider: SchedulerProvider,
+    private val schedulerProvider: SchedulerProvider, //TODO nullable
     private val renderTick: Boolean = true,
     private val tickSpeed: Long = 20,
+    private val onDemandRender: Boolean = true,
     static: Boolean = false,
     smartRender: Boolean = true,
     background: ItemStack? = null
@@ -91,6 +93,19 @@ abstract class ComponentEndpoint(
     }
 
     //TODO clickRequest
+
+    //user-render-interaction
+
+    /**
+     * Empfängt als rendernde Komponente den Befehl einen Rendervorgang zu starten
+     * und startet diesen, wenn [onDemandRender] aktiviert ist.
+     */
+    override fun triggerReRender() {
+        if (!onDemandRender) return
+
+        @OptIn(RenderOnly::class)
+        performSurfaceUpdate()
+    }
 
     //render
 

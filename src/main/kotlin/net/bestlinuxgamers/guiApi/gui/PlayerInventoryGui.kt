@@ -15,6 +15,7 @@ import org.bukkit.inventory.ItemStack
  * @param schedulerProvider Klasse zum registrieren von Minecraft schedulern
  * @param renderTick Ob das Gui im Intervall von [tickSpeed] erneut gerendert werden soll
  * @param tickSpeed Die Schnelligkeit der GUI render Updates in Minecraft Ticks
+ * @param onDemandRender Ob das manuelle Auslösen des Rendervorgangs durch eine Komponente erlaubt sein soll
  * @param static Ob die Komponente nur initial gerendert werden soll.
  * @param background Items für Slots, auf denen keine Komponente liegt
  * @param smartRender Ob nur Komponenten mit detektierten Veränderungen gerendert werden sollen.
@@ -28,6 +29,7 @@ abstract class PlayerInventoryGui(
     schedulerProvider: SchedulerProvider,
     renderTick: Boolean = true,
     tickSpeed: Long = 20,
+    onDemandRender: Boolean = true,
     static: Boolean = false,
     smartRender: Boolean = true,
     background: ItemStack? = null,
@@ -37,6 +39,7 @@ abstract class PlayerInventoryGui(
     schedulerProvider,
     renderTick,
     tickSpeed,
+    onDemandRender,
     static,
     smartRender,
     background

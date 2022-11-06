@@ -299,6 +299,18 @@ abstract class GuiComponent(
         return components.mapNotNull { it?.component }.toSet()
     }
 
+    //user-render-interaction
+
+    /**
+     * Reicht den Befehl, einen Rendervorgang zu starten, an die rendernde Komponente weiter.
+     * Sollte diese Funktionalität in der rendernden Komponente deaktiviert worden sein,
+     * wird der Rendervorgang nicht ausgeführt.
+     * @see net.bestlinuxgamers.guiApi.endpoint.ComponentEndpoint.onDemandRender
+     */
+    open fun triggerReRender() {
+        getParentComponent()?.triggerReRender()
+    }
+
     //rendering
 
     /**
@@ -359,7 +371,7 @@ abstract class GuiComponent(
      * @param clickAction Aktion
      */
     @Suppress("unused")
-    fun setClickable(clickAction: (event: InventoryClickEvent, clickedComponent: Int) -> Unit) {
+    fun setClickable(clickAction: (event: InventoryClickEvent, clickedComponent: Int) -> Unit) { //TODO nicht bei static
         this.clickAction = clickAction
     }
 
