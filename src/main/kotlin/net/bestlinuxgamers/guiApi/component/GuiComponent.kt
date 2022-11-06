@@ -231,8 +231,7 @@ abstract class GuiComponent(
      * @return Komponente des Typs, oder null
      */
     inline fun <reified COMPONENT : GuiComponent> getComponentsOfType(): Set<COMPONENT> {
-        val componentClass = COMPONENT::class
-        return getComponents().mapNotNull { if (it::class == componentClass) it as COMPONENT else null }.toSet()
+        return getComponents().mapNotNull { if (it is COMPONENT) it else null }.toSet()
     }
 
     /**
