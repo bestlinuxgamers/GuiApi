@@ -26,10 +26,12 @@ internal class ComponentEndpointTest {
         lateinit var renderResults: Array<ItemStack?>
         @OptIn(SurfaceManagerOnly::class)
         every { mockSurface.updateItems(any(), any()) } answers {
+            @Suppress("UNCHECKED_CAST")
             renderResults = it.invocation.args[0] as Array<ItemStack?>
         }
         @OptIn(SurfaceManagerOnly::class)
         every { mockSurface.open(any()) } answers {
+            @Suppress("UNCHECKED_CAST")
             renderResults = it.invocation.args[0] as Array<ItemStack?>
         }
 
