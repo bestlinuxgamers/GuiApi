@@ -15,7 +15,8 @@ import org.bukkit.scheduler.BukkitTask
  * Die oberste GUI Komponente, welche zum rendern der untergeordneten Komponenten und
  * dem Event-Empfang/Weiterleiten zuständig ist.
  * @param surface Grafische Oberfläche
- * @param schedulerProvider Klasse zum registrieren von Minecraft schedulern
+ * @param schedulerProvider Klasse zum Registrieren von Minecraft schedulern.
+ * Wenn null, ist [renderTick] automatisch deaktiviert.
  * @param renderTick Ob das Gui im Intervall von [tickSpeed] erneut gerendert werden soll
  * @param tickSpeed Die Schnelligkeit der GUI render Updates von [renderTick] in Minecraft Ticks
  * @param onDemandRender Ob das manuelle Auslösen des Rendervorgangs durch eine Komponente erlaubt sein soll
@@ -27,14 +28,16 @@ import org.bukkit.scheduler.BukkitTask
 @OptIn(SurfaceManagerOnly::class)
 abstract class ComponentEndpoint(
     private val surface: GuiSurfaceInterface,
-    private val schedulerProvider: SchedulerProvider, //TODO nullable
-    private val renderTick: Boolean = true,
+    private val schedulerProvider: SchedulerProvider?,
+    renderTick: Boolean = true,
     private val tickSpeed: Long = 20,
     private val onDemandRender: Boolean = true,
     static: Boolean = false,
     smartRender: Boolean = true,
     background: ItemStack? = null
 ) : GuiComponent(surface.generateReserved(), static, smartRender, background) {
+
+    private val renderTick = renderTick && schedulerProvider != null
 
     private var frameCount: Long = 0
     private var scheduler: BukkitTask? = null
@@ -141,7 +144,7 @@ abstract class ComponentEndpoint(
     private fun startUpdateScheduler() {
         if (!renderTick || super.static || scheduler != null) return
 
-        scheduler = schedulerProvider.runTaskTimerAsynchronously(tickSpeed, tickSpeed) {
+        scheduler = schedulerProvider?.runTaskTimerAsynchronously(tickSpeed, tickSpeed) {
             onRenderTick(tickCount++, frameCount)
             @OptIn(RenderOnly::class)
             performSurfaceUpdate()
