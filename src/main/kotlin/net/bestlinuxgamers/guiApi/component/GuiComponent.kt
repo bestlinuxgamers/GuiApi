@@ -136,7 +136,8 @@ abstract class GuiComponent(
     /**
      * Ruft [beforeRender] für diese und alle untergeordneten Komponenten auf.
      */
-    internal fun dispatchBeforeRender(frame: Long) { //TODO @OnlyDispatcher
+    @CallDispatcherOnly
+    internal fun dispatchBeforeRender(frame: Long) {
         beforeRender(frame)
         getComponents().forEach { it.dispatchBeforeRender(frame) }
     }

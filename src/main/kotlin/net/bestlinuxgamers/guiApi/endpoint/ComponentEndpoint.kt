@@ -1,5 +1,6 @@
 package net.bestlinuxgamers.guiApi.endpoint
 
+import net.bestlinuxgamers.guiApi.component.CallDispatcherOnly
 import net.bestlinuxgamers.guiApi.component.GuiComponent
 import net.bestlinuxgamers.guiApi.component.RenderOnly
 import net.bestlinuxgamers.guiApi.endpoint.surface.GuiSurfaceInterface
@@ -116,6 +117,7 @@ abstract class ComponentEndpoint(
     @RenderOnly
     private fun renderNext(): Array<ItemStack?> {
         val frame = frameCount++
+        @OptIn(CallDispatcherOnly::class)
         dispatchBeforeRender(frame)
         return renderNextFrame(frame)
     }
