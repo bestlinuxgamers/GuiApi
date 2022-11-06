@@ -35,7 +35,6 @@ abstract class GuiComponent(
     internal fun getLastRender() = lastRender?.clone()
 
     private val changedSlots: MutableSet<Int> = mutableSetOf()
-    private val changedComponents: MutableSet<GuiComponent> = mutableSetOf()
 
     //locks
     private var hook: GuiComponent? = null
@@ -215,12 +214,6 @@ abstract class GuiComponent(
         changedSlots.add(slot)
         val parent = getParentComponent() ?: return
         parent.getLocalIndexOfComponentIndex(this, slot).forEach { parent.slotChanged(it) }
-    }
-
-    private fun componentChanged(component: GuiComponent) {
-        changedComponents.add(component)
-        val parent = getParentComponent() ?: return
-        parent.componentChanged(this)
     }
 
     //component getters
