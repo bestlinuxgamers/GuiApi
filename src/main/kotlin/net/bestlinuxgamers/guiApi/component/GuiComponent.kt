@@ -18,7 +18,6 @@ import org.bukkit.inventory.ItemStack
  * @param smartRender Ob nur Komponenten mit detektierten Veränderungen gerendert werden sollen.
  * @param renderFallback Item, welches auf reservierte aber nicht gerenderte Slots gesetzt wird
  */
-@Suppress("MemberVisibilityCanBePrivate")
 abstract class GuiComponent(
     val reservedSlots: ReservedSlots,
     val static: Boolean = false,
@@ -102,7 +101,8 @@ abstract class GuiComponent(
      * @see hook
      * @see lock
      */
-    internal fun isLocked() = (locked || (hook != null))
+    @Suppress("MemberVisibilityCanBePrivate")
+    fun isLocked() = (locked || (hook != null))
 
     /**
      * @return Die übergeordnete Komponente
@@ -211,13 +211,13 @@ abstract class GuiComponent(
      * Diese Information wird auch an alle übergeordneten Komponenten weitergegeben.
      * @see smartRender
      */
-    fun slotChanged(slot: Int) {
+    private fun slotChanged(slot: Int) {
         changedSlots.add(slot)
         val parent = getParentComponent() ?: return
         parent.getLocalIndexOfComponentIndex(this, slot).forEach { parent.slotChanged(it) }
     }
 
-    fun componentChanged(component: GuiComponent) {
+    private fun componentChanged(component: GuiComponent) {
         changedComponents.add(component)
         val parent = getParentComponent() ?: return
         parent.componentChanged(this)
