@@ -32,7 +32,7 @@ class ChestInventoryDisplay(
 ) : MinecraftDisplay {
 
     init {
-        if (lines < MIN_CHEST_LINES || if (!unsafeLines) lines > MAX_CHEST_LINES else false) {
+        if (lines < MIN_CHEST_LINES || (lines > MAX_CHEST_LINES && !unsafeLines)) {
             throw IllegalArgumentException("ChestInventoryDisplays must have $MIN_CHEST_LINES-$MAX_CHEST_LINES lines")
         }
     }
@@ -81,7 +81,8 @@ class ChestInventoryDisplay(
                 ClickEventListenerAdapter::class
             )
         )
-    override val additionalRegistrations: Set<EventRegistration<out EventListenerAdapter<out Event>, out Event>> = setOf()
+    override val additionalRegistrations: Set<EventRegistration<out EventListenerAdapter<out Event>, out Event>> =
+        setOf()
 
     override fun generateCloseActionRegistration(action: () -> Unit): EventRegistration<out EventListenerAdapter<out Event>, out Event> =
         CloseEventRegistration(GuiCloseEventIdentifier(player, inventory), LambdaEventAction { action() })
