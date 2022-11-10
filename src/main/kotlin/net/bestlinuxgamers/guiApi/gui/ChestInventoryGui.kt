@@ -30,7 +30,7 @@ abstract class ChestInventoryGui(
     title: String,
     lines: Int,
     eventDispatcher: MinecraftGuiEventHandler,
-    schedulerProvider: SchedulerProvider,
+    schedulerProvider: SchedulerProvider?,
     renderTick: Boolean = true,
     tickSpeed: Long = 20,
     onDemandRender: Boolean = true,

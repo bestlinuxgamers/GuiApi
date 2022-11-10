@@ -31,7 +31,7 @@ abstract class MergedInventoryGui(
     title: String,
     chestLines: Int,
     eventDispatcher: MinecraftGuiEventHandler,
-    schedulerProvider: SchedulerProvider,
+    schedulerProvider: SchedulerProvider?,
     renderTick: Boolean = true,
     tickSpeed: Long = 20,
     onDemandRender: Boolean = true,
