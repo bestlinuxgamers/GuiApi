@@ -311,7 +311,18 @@ abstract class GuiComponent(
      * wird der Rendervorgang nicht ausgeführt.
      * @see net.bestlinuxgamers.guiApi.endpoint.ComponentEndpoint.onDemandRender
      */
-    open fun triggerReRender() {
+    @Suppress("MemberVisibilityCanBePrivate")
+    fun triggerReRender() {
+        @OptIn(CallDispatcherOnly::class)
+        passUpTriggerReRender()
+    }
+
+    /**
+     * Reicht den [triggerReRender] call an die höchstgelegene Komponente weiter,
+     * welche diese Methode überschreibt.
+     */
+    @CallDispatcherOnly
+    internal open fun passUpTriggerReRender(){
         getParentComponent()?.triggerReRender()
     }
 

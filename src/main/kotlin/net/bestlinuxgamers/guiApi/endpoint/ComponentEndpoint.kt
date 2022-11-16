@@ -104,7 +104,8 @@ abstract class ComponentEndpoint(
      * Empfängt als rendernde Komponente den Befehl einen Rendervorgang zu starten
      * und startet diesen, wenn [onDemandRender] aktiviert ist.
      */
-    override fun triggerReRender() {
+    @CallDispatcherOnly
+    override fun passUpTriggerReRender() {
         if (!onDemandRender) return
 
         @OptIn(RenderOnly::class)
