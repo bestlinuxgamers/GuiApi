@@ -132,8 +132,13 @@ abstract class ComponentEndpoint(
      */
     @RenderOnly
     private fun performSurfaceUpdate() {
+        if (static) return
+
         val lastRender = getLastRender()
-        surface.updateItems(renderNext(), lastRender)
+        val rendered = renderNext()
+
+        if (rendered.contentEquals(lastRender)) return
+        surface.updateItems(rendered, lastRender)
         //TODO was, wenn render länger, als tickSpeed benötigt //TODO Items sync updaten
     }
 
