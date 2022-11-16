@@ -35,10 +35,8 @@ class PlayerInventoryDisplay(override val player: Player, disableOtherInventorie
                     // checking if the raw slot is lower than the inventory size to determine that the upper inventory is clicked,
                     // is used because low minecraft versions (like 1.12) do not have InventoryView#getInventory(int) to
                     // determine the affected inventory.
-                    if (it.view.bottomInventory == inventory && it.rawSlots.any { rs -> rs >= it.view.topInventory.size }) {
-                        return@LambdaEventIdentifier true
-                    }
-                    return@LambdaEventIdentifier false
+                    return@LambdaEventIdentifier it.view.bottomInventory == inventory &&
+                            it.rawSlots.any { rs -> rs >= it.view.topInventory.size }
                 },
                 LambdaEventAction {
                     it.isCancelled = true
