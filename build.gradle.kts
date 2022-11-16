@@ -72,7 +72,7 @@ publishing {
         create<MavenPublication>("maven") {
             pom {
                 name.set(rootProject.name)
-                description.set("Library for creating component-based animated Minecraft inventory GUI's.")
+                description.set("Library for creating component-based animated Minecraft inventory GUIs.")
                 scm {
                     connection.set("scm:git:https://github.com/bestlinuxgamers/GuiApi.git")
                     developerConnection.set("scm:git:ssh://git@github.com/bestlinuxgamers/GuiApi.git")
