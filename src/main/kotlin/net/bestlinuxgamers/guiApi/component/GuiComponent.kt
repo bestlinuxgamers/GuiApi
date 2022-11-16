@@ -128,6 +128,8 @@ abstract class GuiComponent(
     /**
      * Wird vor dem Rendern durch den [net.bestlinuxgamers.guiApi.endpoint.ComponentEndpoint.renderTick] aufgerufen.
      * Damit wird es noch vor [beforeRender] aufgerufen.
+     * @param tick Anzahl des Ticks
+     * @param frame Bild, welches nach dem Tick gerendert werden soll
      */
     abstract fun onRenderTick(tick: Long, frame: Long)
 
@@ -140,6 +142,15 @@ abstract class GuiComponent(
     internal fun dispatchBeforeRender(frame: Long) {
         beforeRender(frame)
         getComponents().forEach { it.dispatchBeforeRender(frame) }
+    }
+
+    /**
+     * Ruft [onRenderTick] für diese und alle untergeordneten Komponenten auf.
+     */
+    @CallDispatcherOnly
+    internal fun dispatchOnRenderTick(tick: Long, frame: Long) {
+        onRenderTick(tick, frame)
+        getComponents().forEach { it.dispatchOnRenderTick(tick, frame) }
     }
 
     //editing

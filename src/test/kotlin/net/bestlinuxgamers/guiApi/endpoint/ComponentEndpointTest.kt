@@ -109,13 +109,38 @@ internal class ComponentEndpointTest {
             }
         }
 
+        var lastScCallTick: Long? = null
+        var lastScCallFrame: Long? = null
+
+        ep.setComponent(object : GuiComponent(ReservedSlots(1, 1)) {
+            override fun setUp() {
+            }
+
+            override fun beforeRender(frame: Long) {
+            }
+
+            override fun onRenderTick(tick: Long, frame: Long) {
+                lastScCallTick = tick
+                lastScCallFrame = frame
+            }
+
+        }, 0)
+
         ep.open()
+
         Assertions.assertEquals(null, lastCallTick)
         Assertions.assertEquals(null, lastCallFrame)
 
+        Assertions.assertEquals(null, lastScCallTick)
+        Assertions.assertEquals(null, lastScCallFrame)
+
         schedulerRunnable.run()
-        Assertions.assertEquals(lastCallTick, 0)
-        Assertions.assertEquals(lastCallFrame, 1)
+
+        Assertions.assertEquals(0, lastCallTick)
+        Assertions.assertEquals(1, lastCallFrame)
+
+        Assertions.assertEquals(0, lastScCallTick)
+        Assertions.assertEquals(1, lastScCallFrame)
     }
 
     companion object {

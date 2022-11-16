@@ -145,7 +145,8 @@ abstract class ComponentEndpoint(
         if (!renderTick || super.static || scheduler != null) return
 
         scheduler = schedulerProvider?.runTaskTimerAsynchronously(tickSpeed, tickSpeed) {
-            onRenderTick(tickCount++, frameCount)
+            @OptIn(CallDispatcherOnly::class)
+            dispatchOnRenderTick(tickCount++, frameCount)
             @OptIn(RenderOnly::class)
             performSurfaceUpdate()
         }
