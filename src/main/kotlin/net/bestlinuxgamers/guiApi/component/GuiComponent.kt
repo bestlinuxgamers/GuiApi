@@ -18,7 +18,7 @@ import org.bukkit.inventory.ItemStack
  * @param smartRender Ob nur Komponenten mit detektierten Veränderungen gerendert werden sollen.
  * @param renderFallback Item, welches auf reservierte aber nicht gerenderte Slots gesetzt wird
  */
-abstract class GuiComponent( //TODO evtl. eingenen renderTickSpeed pro Komponente
+abstract class GuiComponent( //TODO evtl. eigenen renderTickSpeed pro Komponente
     val reservedSlots: ReservedSlots,
     val static: Boolean = false,
     val smartRender: Boolean = true,
