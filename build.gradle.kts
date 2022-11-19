@@ -1,9 +1,9 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.7.0"
+    kotlin("jvm") version "1.7.21"
     id("org.ajoberstar.reckon") version "0.16.1"
-    id("org.jetbrains.dokka") version "1.7.10"
+    id("org.jetbrains.dokka") version "1.7.20"
     id("maven-publish")
     signing
 }
@@ -30,7 +30,7 @@ dependencies {
     compileOnly("org.spigotmc:spigot-api:$spigotVersion")
     //tests
     testImplementation(kotlin("test"))
-    testImplementation("io.mockk:mockk:1.12.4")
+    testImplementation("io.mockk:mockk:1.13.2")
     testImplementation(files("./testDependencies/spigot-1.16.5.jar"))
 }
 
