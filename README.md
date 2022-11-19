@@ -6,7 +6,6 @@
 
 ---
 
-<br>
 Das Ziel dieses Projektes ist es, GUIs möglichst einfach erstellen zu können.
 Dabei wird großer Wert darauf gelegt, dass auch komplexe GUIs (z.B. mit Animationen)
 unterstützt werden.
