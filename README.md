@@ -1,8 +1,8 @@
-<p style="text-align: center;">
+<p align="center">
     <img alt="GuiApi" src=".assets/GuiApi-logo.svg" width="250" />
 </p>
 
-<h3 style="text-align: center;"> A library for creating component-based animated Minecraft inventory GUIs.</h3>
+<h3 align="center"> A library for creating component-based animated Minecraft inventory GUIs.</h3>
 
 ---
 
