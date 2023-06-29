@@ -63,7 +63,7 @@ internal class EmptyComponentTest {
     ) : GuiComponent(ReservedSlots(height, width), static, smartRender = smartRender, renderFallback = renderFallback) {
         override fun setUp() {}
         override fun beforeRender(frame: Long) {}
-        override fun onRenderTick(tick: Long, frame: Long) {}
+        override fun onComponentTick(tick: Long, frame: Long) {}
     }
 
     companion object {

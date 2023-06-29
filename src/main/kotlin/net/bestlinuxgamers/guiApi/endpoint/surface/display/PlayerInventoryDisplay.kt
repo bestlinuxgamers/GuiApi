@@ -19,6 +19,7 @@ import org.bukkit.inventory.PlayerInventory
  * Die Oberfläche des Minecraft Spieler-Inventars (Hot-bar und Menü mit Tastendruck auf "E").
  * @param player Spieler, dem das Inventar gehört.
  * Bei mehreren Instanzen für den gleichen Spieler können Probleme auftreten!
+ * @param disableOtherInventories Ob andere Inventare deaktiviert werden sollen, während die GUI geöffnet ist.
  */
 class PlayerInventoryDisplay(override val player: Player, disableOtherInventories: Boolean = false) : MinecraftDisplay {
     //TODO optionale manager Klasse zur vermeidung von doppelten Spieler-Instanzen

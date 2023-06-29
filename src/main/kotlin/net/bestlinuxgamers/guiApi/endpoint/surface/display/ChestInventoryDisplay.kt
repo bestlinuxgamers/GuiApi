@@ -20,7 +20,8 @@ import org.bukkit.inventory.ItemStack
  * @param player Spieler, dem das Inventar gehört
  * @param title Titel des Inventars
  * @param lines Zeilen des Inventars (von 1 - 6)
- * @param unsafeLines Ob es möglich ist mehr als 6 Zeilen zu setzen.
+ * @param disableOtherInventories Ob andere Inventare deaktiviert werden sollen, während die GUI geöffnet ist.
+ * @param unsafeLines Ob es möglich ist, mehr als 6 Zeilen zu setzen.
  * Dadurch kann ein verbuggtes, aber größeres Inventar erzeugt werden.
  */
 class ChestInventoryDisplay(

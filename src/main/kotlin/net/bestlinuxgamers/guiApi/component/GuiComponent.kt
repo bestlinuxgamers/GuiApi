@@ -16,13 +16,17 @@ import org.bukkit.inventory.ItemStack
  * Dies wird empfohlen, wenn die Komponente keine Animationen/Veränderungen enthält.
  * Beachte: [beforeRender] wird nur einmal aufgerufen!
  * @param smartRender Ob nur Komponenten mit detektierten Veränderungen gerendert werden sollen.
- * @param renderFallback Item, welches auf reservierte aber nicht gerenderte Slots gesetzt wird
+ * @param renderFallback Item, welches auf reservierte aber nicht gerenderte Slots gesetzt wird.
+ * @param componentTick Ob die [onComponentTick] Methode im Intervall vom [tickSpeed] aufgerufen werden soll.
+ * @param tickSpeed In welchem Intervall die [onComponentTick] Methode aufgerufen werden soll.
  */
-abstract class GuiComponent( //TODO evtl. eigenen renderTickSpeed pro Komponente
+abstract class GuiComponent(
     val reservedSlots: ReservedSlots,
     val static: Boolean = false,
-    val smartRender: Boolean = true,
-    val renderFallback: ItemStack? = null
+    val smartRender: Boolean = true, //TODO evtl. entfernen und immer aktiviert. Evtl. manueller voller rerender
+    val renderFallback: ItemStack? = null,
+    val componentTick: Boolean = true,
+    val tickSpeed: Long = 20,
 ) {
 
     private val components: Array<ComponentIndexMap?> = Array(reservedSlots.totalReserved) { null }
@@ -126,12 +130,12 @@ abstract class GuiComponent( //TODO evtl. eigenen renderTickSpeed pro Komponente
     //TODO fun addBeforeRender((Int) -> Unit) zum Hinzufügen von Aktionen von außen. Dafür evtl. Liste an lambdas, eine ist immer {setUp()}
 
     /**
-     * Wird vor dem Rendern durch den [net.bestlinuxgamers.guiApi.endpoint.ComponentEndpoint.renderTick] aufgerufen.
+     * Wird vor dem Rendern durch den [net.bestlinuxgamers.guiApi.endpoint.ComponentEndpoint.componentTick] aufgerufen.
      * Damit wird es noch vor [beforeRender] aufgerufen.
-     * @param tick Anzahl des Ticks
-     * @param frame Bild, welches nach dem Tick gerendert werden soll
+     * @param tick Anzahl des Ticks. Tick 0 findet vor dem Öffnen und ersten Rendern statt.
+     * @param frame Bild, welches als nächstes gerendert werden soll.
      */
-    abstract fun onRenderTick(tick: Long, frame: Long)
+    abstract fun onComponentTick(tick: Long, frame: Long)
 
     //- call dispatchers
 
@@ -145,12 +149,14 @@ abstract class GuiComponent( //TODO evtl. eigenen renderTickSpeed pro Komponente
     }
 
     /**
-     * Ruft [onRenderTick] für diese und alle untergeordneten Komponenten auf.
+     * Ruft [onComponentTick] für diese und alle untergeordneten Komponenten auf.
      */
     @CallDispatcherOnly
-    internal fun dispatchOnRenderTick(tick: Long, frame: Long) {
-        onRenderTick(tick, frame)
-        getComponents().forEach { it.dispatchOnRenderTick(tick, frame) }
+    internal fun dispatchOnComponentTick(tick: Long, frame: Long) {
+        if (componentTick && (tick % tickSpeed == 0.toLong())) {
+            onComponentTick(tick / tickSpeed, frame)
+        }
+        getComponents().forEach { it.dispatchOnComponentTick(tick, frame) }
     }
 
     //editing
@@ -245,6 +251,8 @@ abstract class GuiComponent( //TODO evtl. eigenen renderTickSpeed pro Komponente
      */
     fun getComponentOfIndex(index: Int): GuiComponent? = components[index]?.component
 
+    //TODO getComponentIndexOfIndex oder getComponentIndexMap
+
     /**
      * Gibt die Indexe einer Unterkomponente mit den jeweiligen Indexen dieser Komponente,
      * auf denen der Unterkomponenten-Index liegt, zurück.
@@ -307,14 +315,16 @@ abstract class GuiComponent( //TODO evtl. eigenen renderTickSpeed pro Komponente
 
     /**
      * Reicht den Befehl, einen Rendervorgang zu starten, an die rendernde Komponente weiter.
-     * Sollte diese Funktionalität in der rendernden Komponente deaktiviert worden sein,
-     * wird der Rendervorgang nicht ausgeführt.
-     * @see net.bestlinuxgamers.guiApi.endpoint.ComponentEndpoint.onDemandRender
+     * @param renderIn Ticks, in welchen spätestens ein Rendervorgang gestartet werden soll.
+     * Wenn 0 angegeben ist, wird der Rendervorgang direkt gestartet.
+     * Dies ist allerdings nur möglich, wenn
+     * [net.bestlinuxgamers.guiApi.endpoint.ComponentEndpoint.directOnDemandRender] aktiviert ist.
+     * @see net.bestlinuxgamers.guiApi.endpoint.ComponentEndpoint.directOnDemandRender
      */
     @Suppress("MemberVisibilityCanBePrivate")
-    fun triggerReRender() {
+    fun triggerReRender(renderIn: Int = 1) {
         @OptIn(CallDispatcherOnly::class)
-        passUpTriggerReRender()
+        passUpTriggerReRender(renderIn)
     }
 
     /**
@@ -322,8 +332,9 @@ abstract class GuiComponent( //TODO evtl. eigenen renderTickSpeed pro Komponente
      * welche diese Methode überschreibt.
      */
     @CallDispatcherOnly
-    internal open fun passUpTriggerReRender(){
-        getParentComponent()?.triggerReRender()
+    internal open fun passUpTriggerReRender(renderIn: Int) {
+        if (static) return
+        getParentComponent()?.passUpTriggerReRender(renderIn)
     }
 
     //rendering
@@ -366,7 +377,7 @@ abstract class GuiComponent( //TODO evtl. eigenen renderTickSpeed pro Komponente
      * @see render
      */
     @RenderOnly
-    internal open fun smartRender(frame: Long): Array<ItemStack?> {
+    internal open fun smartRender(frame: Long): Array<ItemStack?> { //TODO evtl. private
         val output = getLastRender() ?: return render(frame)
         val renderManager = RenderManager(frame)
 
@@ -377,6 +388,11 @@ abstract class GuiComponent( //TODO evtl. eigenen renderTickSpeed pro Komponente
         changedSlots.clear()
         return output
     }
+
+    /**
+     * @return Ob noch nicht gerenderte Änderungen vorhanden sind.
+     */
+    fun hasUnRenderedChanges() = changedSlots.isNotEmpty() || lastRender == null
 
     //click
     //TODO protection (Items herausnehmen interaktiv blockieren)

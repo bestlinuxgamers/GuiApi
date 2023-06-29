@@ -12,15 +12,19 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.scheduler.BukkitTask
 
 /**
- * Die oberste GUI Komponente, welche zum rendern der untergeordneten Komponenten und
+ * Die oberste GUI Komponente, welche zum Rendern der untergeordneten Komponenten und
  * dem Event-Empfang/Weiterleiten zuständig ist.
  * @param surface Grafische Oberfläche
  * @param schedulerProvider Klasse zum Registrieren von Minecraft schedulern.
- * Wenn null, ist [renderTick] automatisch deaktiviert.
- * @param renderTick Ob das Gui im Intervall von [tickSpeed] erneut gerendert werden soll
- * @param tickSpeed Die Schnelligkeit der GUI render Updates von [renderTick] in Minecraft Ticks
- * @param onDemandRender Ob das manuelle Auslösen des Rendervorgangs durch eine Komponente erlaubt sein soll
- * @param static Ob die Komponente nur initial gerendert werden soll ([GuiComponent.static])
+ * Wenn null, ist [componentTick] automatisch deaktiviert.
+ * Außerdem können Komponenten nur noch durch [directOnDemandRender] verändert werden.
+ * @param componentTick [GuiComponent.componentTick]
+ * @param tickSpeed [GuiComponent.tickSpeed]
+ * @param directOnDemandRender Ob das neu rendern außerhalb eines Ticks durch
+ * @param autoRender Ob das GUI bei einer erkannten Änderung automatisch aktualisiert werden soll.
+ * @param autoRenderSpeed In wie vielen Ticks das GUI bei einer erkannten Änderung spätestens aktualisiert werden soll.
+ * die [setRequestedReRender]-Methode erlaubt sein soll.
+ * @param static [GuiComponent.static]
  * @param smartRender Ob nur Komponenten mit detektierten Veränderungen gerendert werden sollen ([GuiComponent.smartRender])
  * @param background Items für Slots, auf denen keine Komponente liegt ([GuiComponent.renderFallback])
  * @see GuiComponent
@@ -29,19 +33,26 @@ import org.bukkit.scheduler.BukkitTask
 abstract class ComponentEndpoint(
     private val surface: GuiSurfaceInterface,
     private val schedulerProvider: SchedulerProvider?,
-    renderTick: Boolean = true,
-    private val tickSpeed: Long = 20,
-    private val onDemandRender: Boolean = true,
+    componentTick: Boolean = true,
+    tickSpeed: Long = 20,
+    private val directOnDemandRender: Boolean = false,
+    private val autoRender: Boolean = false,
+    private val autoRenderSpeed: Int = 1,
     static: Boolean = false,
     smartRender: Boolean = true,
     background: ItemStack? = null
-) : GuiComponent(surface.generateReserved(), static, smartRender, background) {
-
-    private val renderTick = renderTick && schedulerProvider != null
-
-    private var frameCount: Long = 0
+) : GuiComponent(
+    surface.generateReserved(),
+    static,
+    smartRender,
+    background,
+    componentTick && schedulerProvider != null,
+    tickSpeed
+) {
+    private var frameCount: Long = 1
     private var scheduler: BukkitTask? = null
     private var tickCount: Long = 0
+    private var requestedRenderIn: Int? = null
 
     init {
         super.lock()
@@ -54,10 +65,14 @@ abstract class ComponentEndpoint(
     @Suppress("unused")
     fun open() {
         if (surface.isOpened()) return
-
-        @OptIn(RenderOnly::class)
-        surface.open(renderNext())
-        startUpdateScheduler()
+        if (tickCount <= 0) {
+            startTickScheduler()
+            @OptIn(RenderOnly::class)
+            surface.open(renderNext())
+        } else {
+            surface.open(getLastRender()!!)
+            startTickScheduler()
+        }
     }
 
     /**
@@ -101,15 +116,30 @@ abstract class ComponentEndpoint(
     //user-render-interaction
 
     /**
-     * Empfängt als rendernde Komponente den Befehl einen Rendervorgang zu starten
-     * und startet diesen, wenn [onDemandRender] aktiviert ist.
+     * Empfängt als rendernde Komponente den Befehl einen Rendervorgang zu starten.
+     * @param renderIn Die Zeit in Ticks, in welcher der Rendervorgang spätestens gestartet werden soll.
+     * Wenn 0 angegeben ist, wird der Rendervorgang direkt gestartet.
+     * Dies ist allerdings nur möglich, wenn [directOnDemandRender] aktiviert ist.
      */
     @CallDispatcherOnly
-    override fun passUpTriggerReRender() {
-        if (!onDemandRender) return
+    override fun passUpTriggerReRender(renderIn: Int) {
+        if (directOnDemandRender && renderIn <= 0) {
+            @OptIn(RenderOnly::class)
+            performSurfaceUpdate()
+        } else {
+            setRequestedReRender(renderIn)
+        }
+    }
 
-        @OptIn(RenderOnly::class)
-        performSurfaceUpdate()
+    /**
+     * Setzt die Zeit, in welcher ein neuer Rendervorgang gestartet wird.
+     * @param renderIn Zeit, in welcher spätestens ein Rendervorgang gestartet werden soll.
+     * Dabei wird beachtet, ob bereits vorher ein Rendervorgang gestartet werden soll.
+     */
+    private fun setRequestedReRender(renderIn: Int) {
+        val renderInSanitized = if (renderIn > 0) renderIn else 1
+
+        if (requestedRenderIn?.let { renderInSanitized < it } != false) requestedRenderIn = renderInSanitized
     }
 
     //render
@@ -131,13 +161,15 @@ abstract class ComponentEndpoint(
      * @see renderNext
      */
     @RenderOnly
-    private fun performSurfaceUpdate() {
-        if (static) return
+    private fun performSurfaceUpdate() { //TODO evtl. smartRender Referenzen entfernen
+        if (static || (smartRender && !hasUnRenderedChanges())) return
 
         val lastRender = getLastRender()
         val rendered = renderNext()
 
-        if (rendered.contentEquals(lastRender)) return
+        requestedRenderIn = null
+
+        if (!smartRender && rendered.contentEquals(lastRender)) return
         surface.updateItems(rendered, lastRender)
         //TODO was, wenn render länger, als tickSpeed benötigt //TODO Items sync updaten
     }
@@ -145,27 +177,37 @@ abstract class ComponentEndpoint(
     //scheduler
 
     /**
-     * Startet den update Tick scheduler
+     * Startet den component Tick scheduler
      */
-    private fun startUpdateScheduler() {
-        if (!renderTick || super.static || scheduler != null) return
+    private fun startTickScheduler() {
+        if (super.static || scheduler != null) return
 
-        scheduler = schedulerProvider?.runTaskTimerAsynchronously(tickSpeed, tickSpeed) {
+        scheduler = schedulerProvider?.runTaskTimerAsynchronously(0, MAX_TICK_SPEED) {
+            val tick = tickCount++
             @OptIn(CallDispatcherOnly::class)
-            dispatchOnRenderTick(tickCount++, frameCount)
-            @OptIn(RenderOnly::class)
-            performSurfaceUpdate()
+            dispatchOnComponentTick(tick, frameCount)
+
+            if (tick >= 1 && // Tick 0 will be rendered by the open() function
+                (requestedRenderIn?.let { requestedRenderIn = it - 1; it - 1 <= 0 } == true ||
+                        (autoRender && tick % autoRenderSpeed == 0.toLong() && hasUnRenderedChanges()))
+            ) {
+                @OptIn(RenderOnly::class)
+                performSurfaceUpdate()
+            }
         }
     }
 
     /**
      * Stoppt den update Tick scheduler
-     * @see startUpdateScheduler
+     * @see startTickScheduler
      */
     private fun stopUpdateScheduler() {
-        if (!static && renderTick) {
+        if (!static) {
             scheduler?.cancel().also { scheduler = null }
         }
     }
 
+    companion object {
+        private const val MAX_TICK_SPEED: Long = 1
+    }
 }

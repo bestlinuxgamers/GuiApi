@@ -10,17 +10,20 @@ import org.bukkit.inventory.ItemStack
 
 /**
  * Vollständiges Minecraft-Kisten-Inventar
- * @param player Spieler, dem das Inventar gehört
+ * @param player [ChestInventoryDisplay.player]
  * @param title Titel des Inventars
  * @param lines Zeilen des Inventars (1 - 6)
- * @param eventDispatcher  Der Event-Manager für Events der Oberfläche
- * @param schedulerProvider Klasse zum registrieren von Minecraft schedulern
- * @param renderTick Ob das Gui im Intervall von [tickSpeed] erneut gerendert werden soll
- * @param tickSpeed Die Schnelligkeit der GUI render Updates in Minecraft Ticks
- * @param onDemandRender Ob das manuelle Auslösen des Rendervorgangs durch eine Komponente erlaubt sein soll
- * @param static Ob die Komponente nur initial gerendert werden soll.
- * @param smartRender Ob nur Komponenten mit detektierten Veränderungen gerendert werden sollen.
- * @param background Items für Slots, auf denen keine Komponente liegt
+ * @param eventHandler [MinecraftGuiSurface.eventHandler]
+ * @param schedulerProvider [ComponentEndpoint.schedulerProvider]
+ * @param componentTick [ComponentEndpoint.componentTick]
+ * @param tickSpeed [ComponentEndpoint.tickSpeed]
+ * @param directOnDemandRender [ComponentEndpoint.directOnDemandRender]
+ * @param autoRender [ComponentEndpoint.autoRender]
+ * @param autoRenderSpeed [ComponentEndpoint.autoRenderSpeed]
+ * @param static [ComponentEndpoint.static]
+ * @param smartRender Ob nur Komponenten mit detektierten Veränderungen gerendert werden sollen ([ComponentEndpoint.smartRender])
+ * @param background [ComponentEndpoint.renderFallback]
+ * @param disableOtherInventories Ob andere Inventare deaktiviert werden sollen, während die GUI geöffnet ist.
  * @see ChestInventoryDisplay
  * @see ComponentEndpoint
  * @see MinecraftGuiSurface
@@ -29,22 +32,26 @@ abstract class ChestInventoryGui(
     player: Player,
     title: String,
     lines: Int,
-    eventDispatcher: MinecraftGuiEventHandler,
+    eventHandler: MinecraftGuiEventHandler,
     schedulerProvider: SchedulerProvider?,
-    renderTick: Boolean = true,
+    componentTick: Boolean = true,
     tickSpeed: Long = 20,
-    onDemandRender: Boolean = true,
+    directOnDemandRender: Boolean = false,
+    autoRender: Boolean = true,
+    autoRenderSpeed: Int = 1,
     static: Boolean = false,
     smartRender: Boolean = true,
     background: ItemStack? = null,
     disableOtherInventories: Boolean = false
 ) : ComponentEndpoint(
-    MinecraftGuiSurface(ChestInventoryDisplay(player, title, lines, disableOtherInventories), eventDispatcher),
+    MinecraftGuiSurface(ChestInventoryDisplay(player, title, lines, disableOtherInventories), eventHandler),
     schedulerProvider,
-    renderTick,
-    tickSpeed,
-    onDemandRender,
-    static,
-    smartRender,
-    background
+    componentTick = componentTick,
+    tickSpeed = tickSpeed,
+    directOnDemandRender = directOnDemandRender,
+    autoRender = autoRender,
+    autoRenderSpeed = autoRenderSpeed,
+    static = static,
+    smartRender = smartRender,
+    background = background
 )
