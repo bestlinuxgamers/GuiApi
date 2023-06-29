@@ -116,6 +116,16 @@ Die [ItemComponent](./src/main/kotlin/net/bestlinuxgamers/guiApi/component/essen
 ist eine Komponente, welche einen Minecraft-ItemStack abbildet.
 Sie muss benutzt werden, um einzelne Items in die Komponenten-Struktur einzubringen.
 
+
+### Component-Tick
+
+Der Component-Tick ist eine periodische Routine, welche den Aufruf der
+[GuiComponent](./src/main/kotlin/net/bestlinuxgamers/guiApi/component/GuiComponent.kt)#onComponentTick Methode
+in allen (Unter-)Komponenten zur Folge hat.
+Der Tick muss auf der globalen Ebene aktiviert werden
+und die Schnelligkeit kann auf Komponenten-Ebene eingestellt werden.
+Der erste Tick wird noch direkt vor dem Öffnen des GUI mit dem Wert 0 gestartet.
+
 ## Rendering
 
 Vor jedem Rendervorgang (Aktualisierung) des GUI wird die
@@ -131,17 +141,30 @@ durch einen Klick, der Fall sein.
 #### On-Demand
 
 On-Demand-Rendering bietet eine Möglichkeit, die GUI bei Bedarf zu aktualisieren.
-Das Feature muss auf Komponenten-Ebene aktiviert werden und ermöglicht die Nutzung der
-[GuiComponent](./src/main/kotlin/net/bestlinuxgamers/guiApi/component/GuiComponent.kt)#triggerReRender Methode.
-Sobald diese Methode aufgerufen wird, aktualisiert sich die GUI.
+Das Feature kann über die 
+[GuiComponent](./src/main/kotlin/net/bestlinuxgamers/guiApi/component/GuiComponent.kt)#triggerReRender Methode
+verwendet werden.
+Dabei gibt es zwei Möglichkeiten zur Nutzung:
 
-#### Render-Tick
+##### Pooled
 
-Der Render-Tick stellt eine periodische Routine dar, welche den Aufruf der
-[GuiComponent](./src/main/kotlin/net/bestlinuxgamers/guiApi/component/GuiComponent.kt)#onRenderTick Methode
-in allen (Unter-)Komponenten und einen anschließenden Rendervorgang zur Folge hat.
-Der Tick muss auf der höchsten Komponenten-Ebene aktiviert werden
-und die Schnelligkeit muss eingestellt werden.
+Dieses Feature ermöglicht es, die Aktualisierung innerhalb von spätestens X Ticks anzufordern.
+Wenn eine andere Komponente eine frühere Aktualisierung anfordert,
+kann die Änderung auch bereits vorher gerendert werden.
+
+Dieses Feature wird benötigt, damit eine Vielzahl von gleichzeitig angeforderten Aktualisierungen nicht für
+unnötig viele Rendervorgänge sorgen.
+
+##### Direct
+
+Das Feature muss auf globaler Ebene aktiviert werden und ermöglicht die Nutzung der Methode mit dem Wert `0`.
+Sobald die Methode so aufgerufen wird, aktualisiert sich die GUI unverzüglich.
+
+#### Auto-Render
+
+Das Feature muss auf globaler Ebene aktiviert werden und ermöglicht die automatische Aktualisierung
+bei einer erkannten Änderung des GUI.
+Die Aktualisierung findet spätestens nach einer auf oberster Komponenten-Ebene eingestellten Zeit statt.
 
 ### Render-Einstellungen
 
@@ -178,9 +201,8 @@ class TestGui(player: Player, guiInstancesProvider: GuiInstancesProvider) :
         "TITLE",
         6, //lines
         guiInstancesProvider.eventDispatcher,
-        guiInstancesProvider.schedulerProvider,
-        renderTick = false,
-        onDemandRender = false
+        null,
+        static = true
     ) {
 
     override fun setUp() {
@@ -193,11 +215,8 @@ class TestGui(player: Player, guiInstancesProvider: GuiInstancesProvider) :
         setComponent(component, 0)
     }
 
-    override fun beforeRender(frame: Long) {
-    }
-
-    override fun onRenderTick(tick: Long, frame: Long) {
-    }
+    override fun beforeRender(frame: Long) {}
+    override fun onComponentTick(tick: Long, frame: Long) {}
 }
 ```
 
