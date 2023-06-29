@@ -191,39 +191,67 @@ sind im [Wiki](https://github.com/bestlinuxgamers/GuiApi/wiki) zu finden.
 ### Gui erstellen
 
 ```kotlin
+import net.bestlinuxgamers.guiApi.component.essentials.ItemComponent
 import net.bestlinuxgamers.guiApi.gui.ChestInventoryGui
 import net.bestlinuxgamers.guiApi.provider.GuiInstancesProvider
+import org.bukkit.Material
 import org.bukkit.entity.Player
+import org.bukkit.inventory.ItemStack
 
-class TestGui(player: Player, guiInstancesProvider: GuiInstancesProvider) :
+/**
+ * This example creates a GUI that slowly fills itself with sticks.
+ * A stick will disappear when you click on it.
+ */
+class ReadmeGui(player: Player, guiInstancesProvider: GuiInstancesProvider) :
     ChestInventoryGui(
         player,
         "TITLE",
         6, //lines
-        guiInstancesProvider.eventDispatcher,
-        null,
-        static = true
+        guiInstancesProvider.eventHandler,
+        guiInstancesProvider.schedulerProvider,
+        componentTick = true,
+        tickSpeed = 20, //every second
+        autoRender = true //changes will be automatically updated
     ) {
 
-    override fun setUp() {
-        val component = ItemComponent(ItemStack(Material.STICK))
+    override fun setUp() {}
+    override fun beforeRender(frame: Long) {}
 
-        component.setClickable { event, clickedComponent ->
-            event.whoClicked.sendMessage("You clicked slot $clickedComponent")
+    /**
+     * Executed every [tickSpeed] ticks.
+     */
+    override fun onComponentTick(tick: Long, frame: Long) {
+        // Calculate the next slot to fill with a stick
+        val slot = tick.toInt() % reservedSlots.totalReserved
+
+        // If there is not already a stick in the slot
+        if (getComponentOfIndex(slot) == null) {
+            // Put a new stick in the next slot
+            setComponent(getRemovableStick(), slot)
         }
-
-        setComponent(component, 0)
     }
 
-    override fun beforeRender(frame: Long) {}
-    override fun onComponentTick(tick: Long, frame: Long) {}
+    /**
+     * Creates a stick component, which will be removed by a click.
+     */
+    private fun getRemovableStick(): ItemComponent {
+        val component = ItemComponent(ItemStack(Material.STICK))
+
+        component.setClickable { event, _ ->
+            event.whoClicked.sendMessage("Stick removed!")
+            // Remove self from parent component
+            removeComponent(component)
+        }
+
+        return component
+    }
 }
 ```
 
 ### Gui nutzen
 
 ```kotlin
-val gui = TestGui(player, guiInstancesProvicer)
+val gui = ReadmeGui(player, guiInstancesProvicer)
 
 //open
 gui.open()
