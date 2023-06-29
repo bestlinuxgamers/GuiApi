@@ -12,13 +12,19 @@ import org.bukkit.inventory.ItemStack
  * @param reservedSlots Struktur der Komponente
  */
 open class RenderEndpointComponent(private val renderItem: ItemStack?, reservedSlots: ReservedSlots) :
-    GuiComponent(reservedSlots, true, false, renderItem) {
+    GuiComponent(
+        reservedSlots,
+        static = true,
+        smartRender = false,
+        renderFallback = renderItem,
+        componentTick = false
+    ) {
 
     override fun setUp() {}
 
     override fun beforeRender(frame: Long) {}
 
-    override fun onRenderTick(tick: Long, frame: Long) {}
+    override fun onComponentTick(tick: Long, frame: Long) {}
 
     @RenderOnly
     override fun render(frame: Long): Array<ItemStack?> = Array(reservedSlots.totalReserved) { renderItem }
