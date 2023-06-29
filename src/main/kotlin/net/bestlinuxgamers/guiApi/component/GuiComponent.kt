@@ -165,6 +165,7 @@ abstract class GuiComponent(
      * Setzt eine [GuiComponent] in die Komponentenliste
      * @param component [GuiComponent], welche hinzugefügt werden soll
      * @param start Index in dieser Komponente, an den Index 0 der hinzuzufügenden Komponente gesetzt werden soll
+     * @param override Ob alle Komponenten, welche sich mit der neuen Komponente überschneiden, entfernt werden sollen
      * @throws ArrayIndexOutOfBoundsException Falls die [component] nicht in den Platz dieser [GuiComponent] passt
      * @throws ComponentOverlapException Falls die [component] eine andere [GuiComponent] überlappen würde
      * @throws ComponentAlreadyInUseException Falls die Instanz der Komponente bereits verwendet wird
@@ -172,7 +173,7 @@ abstract class GuiComponent(
      * @throws SlotNotReservedException Wenn die Komponente auf einen Slot gesetzt werden soll, welcher nicht verfügbar ist
      * @see hook
      */
-    fun setComponent(component: GuiComponent, start: Int) {
+    fun setComponent(component: GuiComponent, start: Int, override: Boolean = false) {
         if (component.isLocked()) throw ComponentAlreadyInUseException()
 
         val startPosition = reservedSlots.getPosOfReservedIndex(start)
@@ -190,7 +191,13 @@ abstract class GuiComponent(
             }
         }
         componentReservedMapped.forEach {
-            if (components[it] != null) throw ComponentOverlapException() //TODO genaue Fehlermeldung
+            if (components[it] != null) {
+                if (override) {
+                    getComponentOfIndex(it)?.let { comp -> removeComponent(comp) }
+                } else {
+                    throw ComponentOverlapException() //TODO genaue Fehlermeldung
+                }
+            }
         }
 
         component.hook(this)

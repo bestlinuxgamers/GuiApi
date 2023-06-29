@@ -146,6 +146,38 @@ internal class GuiComponentTest {
 
     @OptIn(RenderOnly::class)
     @Test
+    fun testSetComponentOverride() {
+        val instance = ResizableTestComponent(3, 3)
+        instance.setComponent(ResizableTestComponent(2, 1, renderFallback = ItemStack(Material.STICK)), 0)
+        instance.setComponent(ResizableTestComponent(1, 3, renderFallback = ItemStack(Material.BARRIER)), 6)
+        instance.setComponent(ResizableTestComponent(1, 1, renderFallback = ItemStack(Material.STONE)), 4)
+
+        val reserved = ReservedSlots(
+            arrayOf(
+                arrayOf(true, true, true),
+                arrayOf(false, false, true),
+                arrayOf(false, false, true)
+            )
+        )
+        val testCpn = AsymmetricTestComponent(reserved, renderFallback = ItemStack(Material.COBBLESTONE))
+
+        Assertions.assertThrows(ComponentOverlapException::class.java) {
+            instance.setComponent(testCpn, 0, false)
+        }
+        instance.setComponent(testCpn, 0, true)
+
+        val target = Array(9) {
+            when (it) {
+                in 0..2, 5, 8 -> ItemStack(Material.COBBLESTONE)
+                4 -> ItemStack(Material.STONE)
+                else -> null
+            }
+        }
+        Assertions.assertArrayEquals(target, instance.render(0))
+    }
+
+    @OptIn(RenderOnly::class)
+    @Test
     fun testRemoveComponent() {
         val instance = ResizableTestComponent(2, 2)
 
