@@ -402,7 +402,7 @@ abstract class GuiComponent(
      * @param clickAction Aktion
      */
     @Suppress("unused")
-    fun setClickable(clickAction: (event: InventoryClickEvent, clickedComponent: Int) -> Unit) { //TODO nicht bei static
+    fun setClickable(clickAction: (event: InventoryClickEvent, clickedComponentSlot: Int) -> Unit) {
         this.clickAction = clickAction
     }
 
