@@ -1,9 +1,10 @@
+import org.ajoberstar.reckon.core.Scope
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.7.21"
-    id("org.ajoberstar.reckon") version "0.16.1"
-    id("org.jetbrains.dokka") version "1.7.20"
+    kotlin("jvm") version "1.8.22"
+    id("org.ajoberstar.reckon") version "0.18.0"
+    id("org.jetbrains.dokka") version "1.8.20"
     id("maven-publish")
     signing
 }
@@ -11,6 +12,7 @@ plugins {
 group = "net.bestlinuxgamers.guiapi"
 
 reckon {
+    setDefaultInferredScope(Scope.PATCH)
     stages("beta", "rc", "final")
 
     setScopeCalc(calcScopeFromProp().or(calcScopeFromCommitMessages()))
