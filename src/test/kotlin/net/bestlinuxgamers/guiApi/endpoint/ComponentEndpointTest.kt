@@ -293,7 +293,7 @@ internal class ComponentEndpointTest {
     }
 
     @Test
-    fun testAutoRender() {
+    fun testAutoRenderBasic() {
         val mockSurface: GuiSurfaceInterface = mockk(relaxed = true)
         every { @OptIn(SurfaceManagerOnly::class) mockSurface.generateReserved() } returns ReservedSlots(1, 1)
         var itemsUpdated = 0
@@ -329,6 +329,68 @@ internal class ComponentEndpointTest {
         scheduler.run()
 
         Assertions.assertEquals(1, itemsUpdated)
+    }
+
+    @Test
+    fun testAutoRenderNested() {
+        val mockSurface: GuiSurfaceInterface = mockk(relaxed = true)
+        every { @OptIn(SurfaceManagerOnly::class) mockSurface.generateReserved() } returns ReservedSlots(1, 3)
+        var itemsUpdated = 0
+        every { @OptIn(SurfaceManagerOnly::class) mockSurface.updateItems(any(), any()) } answers { itemsUpdated++ }
+
+        val mockScheduler: SchedulerProvider = mockk(relaxed = true)
+        val schedulerExtractor = SchedulerRunnableExtractor(mockScheduler)
+        schedulerExtractor.addHook { it.run() }
+
+        val ep = object : ComponentEndpoint(
+            mockSurface,
+            mockScheduler,
+            componentTick = true,
+            tickSpeed = 1,
+            autoRender = true,
+            autoRenderSpeed = 1,
+            smartRender = true,
+        ) {
+            override fun setUp() {}
+            override fun beforeRender(frame: Long) {}
+            override fun onComponentTick(tick: Long, frame: Long) {}
+        }
+
+        val comp = object : GuiComponent(ReservedSlots(1, 1), autoRender = false) {
+            override fun setUp() {}
+            override fun beforeRender(frame: Long) {}
+            override fun onComponentTick(tick: Long, frame: Long) {}
+        }
+
+        val autoComp = object : GuiComponent(ReservedSlots(1, 1), autoRender = true, autoRenderSpeed = 2) {
+            override fun setUp() {}
+            override fun beforeRender(frame: Long) {}
+            override fun onComponentTick(tick: Long, frame: Long) {}
+        }
+
+        ep.setComponent(comp, 0)
+        ep.setComponent(autoComp, 1)
+        ep.open()
+
+        Assertions.assertEquals(0, itemsUpdated)
+        val scheduler = schedulerExtractor.get()!!
+
+        ep.setComponent(ItemComponent(ItemStack(Material.BARRIER)), 2)
+
+        scheduler.run()
+        Assertions.assertEquals(1, itemsUpdated)
+
+        scheduler.run()
+        Assertions.assertEquals(1, itemsUpdated)
+
+        autoComp.setComponent(ItemComponent(ItemStack(Material.BARRIER)), 0)
+        comp.setComponent(ItemComponent(ItemStack(Material.BARRIER)), 0)
+
+        scheduler.run()
+        Assertions.assertEquals(1, itemsUpdated)
+
+        scheduler.run()
+        Assertions.assertEquals(2, itemsUpdated)
     }
 
     @Test

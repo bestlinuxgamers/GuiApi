@@ -23,7 +23,6 @@ import org.bukkit.scheduler.BukkitTask
  * @param directOnDemandRender Ob das neu rendern außerhalb eines Ticks durch
  * @param autoRender Ob das GUI bei einer erkannten Änderung automatisch aktualisiert werden soll.
  * @param autoRenderSpeed In wie vielen Ticks das GUI bei einer erkannten Änderung spätestens aktualisiert werden soll.
- * die [setRequestedReRender]-Methode erlaubt sein soll.
  * @param static [GuiComponent.static]
  * @param smartRender Ob nur Komponenten mit detektierten Veränderungen gerendert werden sollen ([GuiComponent.smartRender])
  * @param background Items für Slots, auf denen keine Komponente liegt ([GuiComponent.renderFallback])
@@ -36,14 +35,16 @@ abstract class ComponentEndpoint(
     componentTick: Boolean = true,
     tickSpeed: Long = 20,
     private val directOnDemandRender: Boolean = false,
-    private val autoRender: Boolean = false,
-    private val autoRenderSpeed: Int = 1,
     static: Boolean = false,
+    autoRender: Boolean = false,
+    autoRenderSpeed: Int = 1,
     smartRender: Boolean = true,
     background: ItemStack? = null
 ) : GuiComponent(
     surface.generateReserved(),
     static,
+    autoRender,
+    autoRenderSpeed,
     smartRender,
     background,
     componentTick && schedulerProvider != null,
@@ -188,8 +189,7 @@ abstract class ComponentEndpoint(
             dispatchOnComponentTick(tick, frameCount)
 
             if (tick >= 1 && // Tick 0 will be rendered by the open() function
-                (requestedRenderIn?.let { requestedRenderIn = it - 1; it - 1 <= 0 } == true ||
-                        (autoRender && tick % autoRenderSpeed == 0.toLong() && hasUnRenderedChanges()))
+                requestedRenderIn?.let { requestedRenderIn = it - 1; it - 1 <= 0 } == true
             ) {
                 @OptIn(RenderOnly::class)
                 performSurfaceUpdate()

@@ -14,7 +14,9 @@ import org.bukkit.inventory.ItemStack
  * @param reservedSlots Fläche der Komponente
  * @param static Ob die Komponente nur einmal gerendert werden soll.
  * Dies wird empfohlen, wenn die Komponente keine Animationen/Veränderungen enthält.
- * Beachte: [beforeRender] wird nur einmal aufgerufen!
+ * Beachte: Keine Änderung nach dem initialen Öffnen wird angezeigt!
+ * @param autoRender Ob das GUI bei einer erkannten Änderung automatisch aktualisiert werden soll.
+ * @param autoRenderSpeed In wie vielen Ticks das GUI bei einer erkannten Änderung spätestens aktualisiert werden soll.
  * @param smartRender Ob nur Komponenten mit detektierten Veränderungen gerendert werden sollen.
  * @param renderFallback Item, welches auf reservierte aber nicht gerenderte Slots gesetzt wird.
  * @param componentTick Ob die [onComponentTick] Methode im Intervall vom [tickSpeed] aufgerufen werden soll.
@@ -22,7 +24,9 @@ import org.bukkit.inventory.ItemStack
  */
 abstract class GuiComponent(
     val reservedSlots: ReservedSlots,
-    val static: Boolean = false,
+    val static: Boolean = false, //TODO auto-funktion, welche durch untergeordnete Komponenten static erkennt
+    private val autoRender: Boolean = false,
+    private val autoRenderSpeed: Int = 1,
     val smartRender: Boolean = true, //TODO evtl. entfernen und immer aktiviert. Evtl. manueller voller rerender
     val renderFallback: ItemStack? = null,
     val componentTick: Boolean = true,
@@ -205,6 +209,9 @@ abstract class GuiComponent(
             components[mappedSlot] = ComponentIndexMap(component, index)
             slotChanged(mappedSlot)
         }
+        if (componentReservedMapped.isNotEmpty()) {
+            sendAutoRender()
+        }
     }
 
     /**
@@ -239,6 +246,11 @@ abstract class GuiComponent(
         changedSlots.add(slot)
         val parent = getParentComponent() ?: return
         parent.getLocalIndexOfComponentIndex(this, slot).forEach { parent.slotChanged(it) }
+    }
+
+    private fun sendAutoRender() {
+        if (!autoRender) return
+        triggerReRender(autoRenderSpeed)
     }
 
     //component getters
