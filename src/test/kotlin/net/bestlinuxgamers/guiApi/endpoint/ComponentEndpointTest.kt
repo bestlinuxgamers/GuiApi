@@ -87,7 +87,7 @@ internal class ComponentEndpointTest {
 
         var lastScFrame: Long? = null
 
-        class TestComponent : GuiComponent(ReservedSlots(1, 1), false) {
+        class TestComponent : GuiComponent(ReservedSlots(1, 1), static = false) {
             override fun setUp() {}
             override fun onComponentTick(tick: Long, frame: Long) {}
 
