@@ -228,6 +228,7 @@ abstract class GuiComponent(
                 slotChanged(index)
             }
         }
+        sendAutoRender()
     }
 
     /**
