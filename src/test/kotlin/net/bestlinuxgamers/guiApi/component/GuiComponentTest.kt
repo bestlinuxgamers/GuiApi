@@ -211,7 +211,6 @@ internal class GuiComponentTest {
     @Test
     fun testGetComponentsOfType() {
         class TestComponent : GuiComponent(ReservedSlots(1, 1), static = true) {
-            override fun setUp() {}
             override fun beforeRender(frame: Long) {}
             override fun onComponentTick(tick: Long, frame: Long) {}
         }
@@ -431,7 +430,6 @@ internal class GuiComponentTest {
             autoRender = false,
             renderFallback = ItemStack(Material.BEDROCK)
         ) {
-            override fun setUp() {}
             override fun beforeRender(frame: Long) {}
             override fun onComponentTick(tick: Long, frame: Long) {}
 
@@ -532,7 +530,7 @@ internal class GuiComponentTest {
             static = true,
             renderFallback = ItemStack(Material.BARRIER)
         ) {
-            override fun setUp() {
+            init {
                 setComponent(ItemComponent(ItemStack(Material.STICK)), 0)
             }
 
@@ -558,7 +556,6 @@ internal class GuiComponentTest {
         smartRender = smartRender,
         renderFallback = renderFallback
     ) {
-        override fun setUp() {}
         override fun beforeRender(frame: Long) {}
         override fun onComponentTick(tick: Long, frame: Long) {}
     }
@@ -569,7 +566,6 @@ internal class GuiComponentTest {
         smartRender: Boolean = true,
         static: Boolean = true
     ) : GuiComponent(reserved, static = static, renderFallback = renderFallback, smartRender = smartRender) {
-        override fun setUp() {}
         override fun beforeRender(frame: Long) {}
         override fun onComponentTick(tick: Long, frame: Long) {}
     }

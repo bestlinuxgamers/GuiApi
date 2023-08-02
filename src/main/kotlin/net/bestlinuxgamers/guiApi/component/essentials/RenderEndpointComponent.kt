@@ -20,8 +20,6 @@ open class RenderEndpointComponent(private val renderItem: ItemStack?, reservedS
         componentTick = false
     ) {
 
-    override fun setUp() {}
-
     override fun beforeRender(frame: Long) {}
 
     override fun onComponentTick(tick: Long, frame: Long) {}

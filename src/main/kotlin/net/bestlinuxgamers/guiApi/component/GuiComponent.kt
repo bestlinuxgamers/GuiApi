@@ -9,7 +9,7 @@ import org.bukkit.inventory.ItemStack
 /**
  * Repräsentiert eine Komponente eines Minecraft Guis.
  *
- * Die Klasse erstellt zuerst mithilfe der [setUp] Methode die Komponente.
+ * Die Komponente wird im Konstruktor der Unterklasse erstellt.
  * Anschließend können die Komponenten gerendert [renderNextFrame] werden.
  * @param reservedSlots Fläche der Komponente
  * @param static Ob die Komponente nur einmal gerendert werden soll.
@@ -47,11 +47,6 @@ abstract class GuiComponent(
     //locks
     private var hook: GuiComponent? = null
     private var locked = false
-
-    //init
-    init {
-        setUp() //TODO evtl. erst beim start vom rendern aufrufen - muss auch vor erster Änderung (z.B. durch setComponent()) ausgeführt werden - kann in ItemGui benutzt werden
-    }
 
     //hook/lock
     /**
@@ -118,12 +113,6 @@ abstract class GuiComponent(
     fun getParentComponent() = hook
 
     //user defined methods
-
-    /**
-     * Richtet die Komponente für den ersten Rendervorgang ein.<br/>
-     * Nur neue Instanzen von Komponenten erstellen!
-     */
-    abstract fun setUp()
 
     /**
      * Wird vor jedem Rendervorgang aufgerufen.

@@ -66,7 +66,6 @@ internal class EmptyComponentTest {
         smartRender = smartRender,
         renderFallback = renderFallback
     ) {
-        override fun setUp() {}
         override fun beforeRender(frame: Long) {}
         override fun onComponentTick(tick: Long, frame: Long) {}
     }

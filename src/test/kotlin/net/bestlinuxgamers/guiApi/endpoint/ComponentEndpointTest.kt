@@ -36,7 +36,6 @@ internal class ComponentEndpointTest {
         var renderedFrame: Long? = null
 
         val ep = object : ComponentEndpoint(mockSurface, mockScheduler, componentTick = true) {
-            override fun setUp() {}
             override fun beforeRender(frame: Long) {
                 renderedFrame = frame
             }
@@ -77,7 +76,6 @@ internal class ComponentEndpointTest {
             componentTick = true,
             tickSpeed = 1
         ) {
-            override fun setUp() {}
             override fun onComponentTick(tick: Long, frame: Long) {}
 
             override fun beforeRender(frame: Long) {
@@ -88,7 +86,6 @@ internal class ComponentEndpointTest {
         var lastScFrame: Long? = null
 
         class TestComponent : GuiComponent(ReservedSlots(1, 1), static = false) {
-            override fun setUp() {}
             override fun onComponentTick(tick: Long, frame: Long) {}
 
             override fun beforeRender(frame: Long) {
@@ -143,7 +140,6 @@ internal class ComponentEndpointTest {
             autoRender = false,
             background = ItemStack(Material.STICK),
         ) {
-            override fun setUp() {}
             override fun beforeRender(frame: Long) {}
 
             override fun onComponentTick(tick: Long, frame: Long) {
@@ -160,7 +156,6 @@ internal class ComponentEndpointTest {
             componentTick = true,
             tickSpeed = 2,
         ) {
-            override fun setUp() {}
             override fun beforeRender(frame: Long) {}
 
             override fun onComponentTick(tick: Long, frame: Long) {
@@ -230,7 +225,6 @@ internal class ComponentEndpointTest {
             autoRender = false,
             directOnDemandRender = true
         ) {
-            override fun setUp() {}
             override fun beforeRender(frame: Long) {}
             override fun onComponentTick(tick: Long, frame: Long) {}
         }
@@ -277,7 +271,6 @@ internal class ComponentEndpointTest {
             autoRender = false,
             directOnDemandRender = false
         ) {
-            override fun setUp() {}
             override fun beforeRender(frame: Long) {}
             override fun onComponentTick(tick: Long, frame: Long) {}
         }
@@ -312,7 +305,6 @@ internal class ComponentEndpointTest {
             autoRenderSpeed = 2,
             smartRender = true,
         ) {
-            override fun setUp() {}
             override fun beforeRender(frame: Long) {}
             override fun onComponentTick(tick: Long, frame: Long) {}
         }
@@ -351,19 +343,16 @@ internal class ComponentEndpointTest {
             autoRenderSpeed = 1,
             smartRender = true,
         ) {
-            override fun setUp() {}
             override fun beforeRender(frame: Long) {}
             override fun onComponentTick(tick: Long, frame: Long) {}
         }
 
         val comp = object : GuiComponent(ReservedSlots(1, 1), autoRender = false) {
-            override fun setUp() {}
             override fun beforeRender(frame: Long) {}
             override fun onComponentTick(tick: Long, frame: Long) {}
         }
 
         val autoComp = object : GuiComponent(ReservedSlots(1, 1), autoRender = true, autoRenderSpeed = 2) {
-            override fun setUp() {}
             override fun beforeRender(frame: Long) {}
             override fun onComponentTick(tick: Long, frame: Long) {}
         }
@@ -413,7 +402,6 @@ internal class ComponentEndpointTest {
             autoRender = false,
             background = ItemStack(Material.STICK),
         ) {
-            override fun setUp() {}
             override fun beforeRender(frame: Long) {
                 lastRender = frame
             }

@@ -214,7 +214,6 @@ class ReadmeGui(player: Player, guiInstancesProvider: GuiInstancesProvider) :
         autoRender = true //changes will be automatically updated
     ) {
 
-    override fun setUp() {}
     override fun beforeRender(frame: Long) {}
 
     /**
