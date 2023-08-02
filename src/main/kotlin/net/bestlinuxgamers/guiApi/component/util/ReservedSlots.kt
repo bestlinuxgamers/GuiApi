@@ -46,7 +46,7 @@ class ReservedSlots(reservedSlotsArr2D: Array<Array<Boolean>>) {
     /**
      * Lambda Konstruktor
      * @param lines Höhe der ReservedSlots
-     * @param getLineReserved Lambda Funktion, welche mit einer angegebenen Zeile die dazugehörige ReservedRow ausgibt.
+     * @param getLineReserved Lambda Funktion, welche mit einer angegebenen Zeile (0 Index) die dazugehörige ReservedRow ausgibt.
      */
     constructor(lines: Int, getLineReserved: (Int) -> Array<Boolean>) : this(Array(lines) { getLineReserved(it) })
 
