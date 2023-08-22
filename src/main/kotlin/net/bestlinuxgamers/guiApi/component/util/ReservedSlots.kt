@@ -73,6 +73,8 @@ class ReservedSlots(reservedSlotsArr2D: Array<Array<Boolean>>) {
 
     //reservedSlots
 
+    val height: Int by lazy { reservedSlotsArr2D.size }
+
     val totalReserved: Int by lazy { calculateReservedSize() }
 
     /**
