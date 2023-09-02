@@ -373,7 +373,7 @@ abstract class GuiComponent(
         val renderManager = RenderManager(frame)
         return Array(reservedSlots.totalReserved) {
             val compIndex = components[it] ?: return@Array renderFallback
-            return@Array renderManager.getComponentIndex(compIndex.component, compIndex.index) ?: renderFallback
+            return@Array renderManager.getComponentIndex(compIndex.component, compIndex.index)
         }
     }
 
@@ -391,8 +391,10 @@ abstract class GuiComponent(
         val renderManager = RenderManager(frame)
 
         changedSlots.forEach {
-            output[it] = components[it]?.let { it2 -> renderManager.getComponentIndex(it2.component, it2.index) }
-                ?: renderFallback
+            val component = components[it]
+            output[it] = if (component != null) {
+                renderManager.getComponentIndex(component.component, component.index)
+            } else renderFallback
         }
         changedSlots.clear()
         return output
@@ -463,10 +465,9 @@ abstract class GuiComponent(
          */
         @RenderOnly
         fun getComponentIndex(component: GuiComponent, index: Int): ItemStack? {
-            return (renderResults[component]
-                ?: component.renderNextFrame(frame)
-                    .also { renderResults[component] = it }
-                    )[index]
+            return (renderResults.getOrElse(component) {
+                component.renderNextFrame(frame).also { renderResults[component] = it }
+            })[index]
         }
 
         @RenderOnly

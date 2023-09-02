@@ -416,6 +416,65 @@ internal class GuiComponentTest {
 
     @OptIn(RenderOnly::class)
     @Test
+    fun testRenderFallbackRender() {
+        val outer = ResizableTestComponent(3, 2, renderFallback = ItemStack(Material.BEDROCK))
+        val inner = ResizableTestComponent(2, 2, renderFallback = ItemStack(Material.COBBLESTONE))
+        val inner2 = ResizableTestComponent(1, 2, renderFallback = null)
+
+        outer.setComponent(inner, 0)
+        inner.setComponent(inner2, 0)
+
+        val target = Array(6) {
+            when (it) {
+                in 0..1 -> null
+                in 2..3 -> ItemStack(Material.COBBLESTONE)
+                in 4..5 -> ItemStack(Material.BEDROCK)
+                else -> throw IllegalStateException()
+            }
+        }
+
+        Assertions.assertArrayEquals(target, outer.render(0))
+    }
+
+    @OptIn(RenderOnly::class)
+    @Test
+    fun testRenderFallbackSmartRender() {
+        val outer = ResizableTestComponent(
+            3,
+            2,
+            static = false,
+            smartRender = true,
+            renderFallback = ItemStack(Material.BEDROCK)
+        )
+        outer.renderNextFrame(0)
+        val inner = ResizableTestComponent(
+            2,
+            2,
+            static = false,
+            smartRender = true,
+            renderFallback = ItemStack(Material.COBBLESTONE)
+        )
+        inner.renderNextFrame(0)
+        val inner2 = ResizableTestComponent(1, 2, static = false, smartRender = true, renderFallback = null)
+        inner2.renderNextFrame(0)
+
+        outer.setComponent(inner, 0)
+        inner.setComponent(inner2, 0)
+
+        val target = Array(6) {
+            when (it) {
+                in 0..1 -> null
+                in 2..3 -> ItemStack(Material.COBBLESTONE)
+                in 4..5 -> ItemStack(Material.BEDROCK)
+                else -> throw IllegalStateException()
+            }
+        }
+
+        Assertions.assertArrayEquals(target, outer.renderNextFrame(1))
+    }
+
+    @OptIn(RenderOnly::class)
+    @Test
     fun testSmartRender() {
         val comp1Reserved = ReservedSlots(
             arrayOf(
