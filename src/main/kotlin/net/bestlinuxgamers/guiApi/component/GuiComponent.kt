@@ -34,8 +34,7 @@ abstract class GuiComponent(
 ) {
 
     private val components: Array<ComponentIndexMap?> = Array(reservedSlots.totalReserved) { null }
-    private var clickAction: (event: InventoryClickEvent, clickedComponent: Int) -> Unit =
-        { _: InventoryClickEvent, _: Int -> }
+    private var clickAction: (event: InventoryClickEvent, clickedComponent: Int) -> Unit = { _, _ -> }
 
     //render vars
     private var lastRender: Array<ItemStack?>? = null
@@ -330,7 +329,6 @@ abstract class GuiComponent(
      * [net.bestlinuxgamers.guiApi.endpoint.ComponentEndpoint.directOnDemandRender] aktiviert ist.
      * @see net.bestlinuxgamers.guiApi.endpoint.ComponentEndpoint.directOnDemandRender
      */
-    @Suppress("MemberVisibilityCanBePrivate")
     fun triggerReRender(renderIn: Int = 1) {
         @OptIn(CallDispatcherOnly::class)
         passUpTriggerReRender(renderIn)
@@ -359,7 +357,6 @@ abstract class GuiComponent(
         if (static) {
             lastRender?.let { return it }
         }
-        //TODO evtl. onRender() / afterRender() - nur für zuvor gerenderte
         return (if (smartRender) smartRender(frame) else render(frame)).also { lastRender = it }
     }
 
@@ -412,7 +409,6 @@ abstract class GuiComponent(
      * Setzt die Aktion, welche bei einem Klick ausgeführt wird
      * @param clickAction Aktion
      */
-    @Suppress("unused")
     fun setClickable(clickAction: (event: InventoryClickEvent, clickedComponentSlot: Int) -> Unit) {
         this.clickAction = clickAction
     }

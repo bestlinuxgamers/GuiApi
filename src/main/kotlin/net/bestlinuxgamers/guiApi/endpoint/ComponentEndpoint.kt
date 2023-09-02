@@ -63,7 +63,6 @@ abstract class ComponentEndpoint(
     /**
      * Öffnet das Inventar für den Spieler und startet alle Animationen
      */
-    @Suppress("unused")
     fun open() {
         if (surface.isOpened()) return
         if (tickCount <= 0) {
@@ -80,7 +79,6 @@ abstract class ComponentEndpoint(
      * Schließt das Inventar für den Spieler
      * @see GuiSurfaceInterface.close
      */
-    @Suppress("unused")
     fun close() {
         @OptIn(EventDispatcherOnly::class)
         performClose()

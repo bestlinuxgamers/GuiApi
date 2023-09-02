@@ -127,7 +127,6 @@ publishing {
             }
 
             authentication {
-                @Suppress("UNUSED_VARIABLE")
                 val header by registering(HttpHeaderAuthentication::class)
             }
         }

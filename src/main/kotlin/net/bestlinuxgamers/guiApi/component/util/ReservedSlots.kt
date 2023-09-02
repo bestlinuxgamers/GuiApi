@@ -53,7 +53,6 @@ class ReservedSlots(reservedSlotsArr2D: Array<Array<Boolean>>) {
     /**
      * @see [translateArr1DToArr2D]
      */
-    @Suppress("unused")
     constructor(width: Int, reservedSlots: Array<Boolean>) : this(translateArr1DToArr2DSquare(width, reservedSlots))
 
     //allSlots
@@ -87,7 +86,6 @@ class ReservedSlots(reservedSlotsArr2D: Array<Array<Boolean>>) {
      * @return die Anzahl an **verfügbaren** Slots in Zeile [line]
      * @throws ArrayIndexOutOfBoundsException Wenn es [line] nicht gibt
      */
-    @Suppress("MemberVisibilityCanBePrivate")
     fun getReservedOfLine(line: Int): Int = reservedSlotsArr2D[line].filter { it }.size
 
     //pos <-> index
