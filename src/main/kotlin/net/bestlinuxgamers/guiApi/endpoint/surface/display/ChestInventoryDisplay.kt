@@ -104,7 +104,6 @@ class ChestInventoryDisplay(
     @SurfaceManagerOnly
     override fun updateItems(items: Array<ItemStack?>, lastItems: Array<ItemStack?>?) {
         inventory.updateItems(items, lastItems)
-        player.updateInventory()
     }
 
     @SurfaceManagerOnly
