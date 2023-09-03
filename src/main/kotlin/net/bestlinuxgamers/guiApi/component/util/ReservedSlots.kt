@@ -10,19 +10,20 @@ class ReservedSlots(reservedSlotsArr2D: Array<Array<Boolean>>) {
     private val reservedSlotsArr2D: Array<Array<Boolean>>
 
     init {
+        val reservedSlotsArr2DCopy = reservedSlotsArr2D.clone()
         //ensure every row ends with true
-        reservedSlotsArr2D.forEachIndexed { idx, it ->
+        reservedSlotsArr2DCopy.forEachIndexed { idx, it ->
             if (it.isNotEmpty() && !it.last()) {
                 var lastTrueIdx = -1
                 it.forEachIndexed { idx2, it2 -> if (it2) lastTrueIdx = idx2 }
-                reservedSlotsArr2D[idx] = if (lastTrueIdx > -1) it.copyOfRange(0, lastTrueIdx + 1) else emptyArray()
+                reservedSlotsArr2DCopy[idx] = if (lastTrueIdx > -1) it.copyOfRange(0, lastTrueIdx + 1) else emptyArray()
             }
         }
 
         //ensure reservedSlots doesn't start and end with an empty array
         var startArr = 0
-        var endArr = reservedSlotsArr2D.size
-        reservedSlotsArr2D.forEachIndexed { idx, it ->
+        var endArr = reservedSlotsArr2DCopy.size
+        reservedSlotsArr2DCopy.forEachIndexed { idx, it ->
             if (it.isNotEmpty()) {
                 endArr = idx + 1
             } else {
@@ -30,10 +31,10 @@ class ReservedSlots(reservedSlotsArr2D: Array<Array<Boolean>>) {
             }
         }
         if (startArr == endArr) throw NoReservedSlotsException()
-        this.reservedSlotsArr2D = if (startArr != 0 || endArr != reservedSlotsArr2D.size - 1) {
-            reservedSlotsArr2D.copyOfRange(startArr, endArr)
+        this.reservedSlotsArr2D = if (startArr != 0 || endArr != reservedSlotsArr2DCopy.size - 1) {
+            reservedSlotsArr2DCopy.copyOfRange(startArr, endArr)
         } else {
-            reservedSlotsArr2D
+            reservedSlotsArr2DCopy
         }
     }
 
