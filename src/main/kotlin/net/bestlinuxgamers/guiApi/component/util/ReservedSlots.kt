@@ -7,36 +7,7 @@ package net.bestlinuxgamers.guiApi.component.util
  */
 class ReservedSlots(reservedSlotsArr2D: Array<Array<Boolean>>) {
 
-    private val reservedSlotsArr2D: Array<Array<Boolean>>
-
-    init {
-        val reservedSlotsArr2DCopy = reservedSlotsArr2D.clone()
-        //ensure every row ends with true
-        reservedSlotsArr2DCopy.forEachIndexed { idx, it ->
-            if (it.isNotEmpty() && !it.last()) {
-                var lastTrueIdx = -1
-                it.forEachIndexed { idx2, it2 -> if (it2) lastTrueIdx = idx2 }
-                reservedSlotsArr2DCopy[idx] = if (lastTrueIdx > -1) it.copyOfRange(0, lastTrueIdx + 1) else emptyArray()
-            }
-        }
-
-        //ensure reservedSlots doesn't start and end with an empty array
-        var startArr = 0
-        var endArr = reservedSlotsArr2DCopy.size
-        reservedSlotsArr2DCopy.forEachIndexed { idx, it ->
-            if (it.isNotEmpty()) {
-                endArr = idx + 1
-            } else {
-                if (startArr == idx) startArr++
-            }
-        }
-        if (startArr == endArr) throw NoReservedSlotsException()
-        this.reservedSlotsArr2D = if (startArr != 0 || endArr != reservedSlotsArr2DCopy.size - 1) {
-            reservedSlotsArr2DCopy.copyOfRange(startArr, endArr)
-        } else {
-            reservedSlotsArr2DCopy
-        }
-    }
+    private val reservedSlotsArr2D: Array<Array<Boolean>> = reservedSlotsArr2D.trim()
 
     /**
      * Für rechteckige Komponenten
@@ -207,3 +178,47 @@ class ReservedSlots(reservedSlotsArr2D: Array<Array<Boolean>>) {
     }
 
 }
+
+/**
+ * Trimmt ein zweidimensionales Array sodass
+ * - jede Zeile mit einem Wert abschließt.
+ * - Am Anfang und am Ende keine leeren Zeilen existieren.
+ * @param isValue Lambda, welche zurückgibt, welches Objekt als Wert angesehen wird.
+ * @throws NoReservedSlotsException Falls kein einziger "true" Wert existiert.
+ * @return Ein getrimmter Klon des Arrays.
+ */
+inline fun <reified T> Array<Array<T>>.trim(isValue: (T) -> Boolean): Array<Array<T>> {
+    val modified = this.clone()
+
+    //ensure every row ends with true
+    modified.forEachIndexed { lineIdx, line ->
+        if (line.isNotEmpty() && !isValue(line.last())) {
+            var lastTrueIdx = -1
+            line.forEachIndexed { columnIdx, column -> if (isValue(column)) lastTrueIdx = columnIdx }
+            modified[lineIdx] = if (lastTrueIdx > -1) line.copyOfRange(0, lastTrueIdx + 1) else emptyArray()
+        }
+    }
+
+    //ensure reservedSlots doesn't start and end with an empty array
+    var startArr = 0
+    var endArr = modified.size
+    modified.forEachIndexed { lineIdx, line ->
+        if (line.isNotEmpty()) {
+            endArr = lineIdx + 1
+        } else {
+            if (startArr == lineIdx) startArr++
+        }
+    }
+    if (startArr == endArr) throw NoReservedSlotsException()
+    return if (startArr != 0 || endArr != modified.size - 1) {
+        modified.copyOfRange(startArr, endArr)
+    } else {
+        modified
+    }
+}
+
+/**
+ * Trimmt ein zweidimensionales Array aus Booleans.
+ * @see trim
+ */
+fun Array<Array<Boolean>>.trim() = this.trim { it }

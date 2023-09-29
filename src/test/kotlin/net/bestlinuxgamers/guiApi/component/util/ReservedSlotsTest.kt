@@ -71,7 +71,7 @@ internal class ReservedSlotsTest {
     }
 
     @Test
-    fun testCrop() {
+    fun testTrim() {
         val reserved1: Array<Array<Boolean>> = arrayOf(
             arrayOf(false),
             arrayOf(true, false),
