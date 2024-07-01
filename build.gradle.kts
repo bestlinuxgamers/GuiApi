@@ -1,5 +1,4 @@
 import org.ajoberstar.reckon.core.Scope
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "1.9.0"
@@ -38,15 +37,8 @@ dependencies {
 
 //task settings
 
-val targetProjectCompatibility = JavaVersion.VERSION_1_8.toString()
-
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = targetProjectCompatibility
-}
-
-tasks.withType<JavaCompile> {
-    sourceCompatibility = JavaVersion.current().toString()
-    targetCompatibility = targetProjectCompatibility
+kotlin {
+    jvmToolchain(8)
 }
 
 tasks.test {
@@ -127,6 +119,7 @@ publishing {
             }
 
             authentication {
+                @Suppress("UNUSED_VARIABLE", "KotlinRedundantDiagnosticSuppress")
                 val header by registering(HttpHeaderAuthentication::class)
             }
         }
