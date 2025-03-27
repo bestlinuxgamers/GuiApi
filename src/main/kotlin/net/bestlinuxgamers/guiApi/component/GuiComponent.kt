@@ -12,15 +12,18 @@ import org.bukkit.inventory.ItemStack
  * Die Komponente wird im Konstruktor der Unterklasse erstellt.
  * Anschließend können die Komponenten gerendert [renderNextFrame] werden.
  * @param reservedSlots Fläche der Komponente
- * @param static Ob die Komponente nur einmal gerendert werden soll.
+ * @param static Ob die Komponente und alle Unterkomponenten nur einmal gerendert werden sollen.
  * Dies wird empfohlen, wenn die Komponente keine Animationen/Veränderungen enthält.
  * Beachte: Keine Änderung nach dem initialen Öffnen wird angezeigt!
  * @param autoRender Ob das GUI bei einer erkannten Änderung automatisch aktualisiert werden soll.
- * @param autoRenderSpeed In wie vielen Ticks das GUI bei einer erkannten Änderung spätestens aktualisiert werden soll.
+ * @param autoRenderSpeed In wie vielen globalen Ticks das GUI bei einer erkannten Änderung spätestens aktualisiert werden soll.
+ * Mit [tickSpeed] multiplizieren, um die Komponenten-relative Tick-geschwindigkeit zu bekommen.
  * @param smartRender Ob nur Komponenten mit detektierten Veränderungen gerendert werden sollen.
  * @param renderFallback Item, welches auf reservierte aber nicht gerenderte Slots gesetzt wird.
- * @param componentTick Ob die [onComponentTick] Methode im Intervall vom [tickSpeed] aufgerufen werden soll.
- * @param tickSpeed In welchem Intervall die [onComponentTick] Methode aufgerufen werden soll.
+ * @param componentTick Ob die [onComponentTick] Methode dieser Komponente im Intervall vom [tickSpeed] aufgerufen werden soll.
+ * Diese Einstellung ist unabhängig von allen Unterkomponenten.
+ * @param tickSpeed In welchem Abstand zwischen globalen Ticks die [onComponentTick] Methode aufgerufen werden soll.
+ * Die maximale Schnelligkeit (1) entspricht dem globalen Tick [net.bestlinuxgamers.guiApi.endpoint.ComponentEndpoint.MAX_TICK_SPEED].
  */
 abstract class GuiComponent(
     val reservedSlots: ReservedSlots,

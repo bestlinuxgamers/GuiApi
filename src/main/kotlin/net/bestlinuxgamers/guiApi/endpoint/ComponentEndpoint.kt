@@ -181,7 +181,7 @@ abstract class ComponentEndpoint(
     private fun startTickScheduler() {
         if (super.static || scheduler != null) return
 
-        scheduler = schedulerProvider?.runTaskTimerAsynchronously(0, MAX_TICK_SPEED) {
+        scheduler = schedulerProvider?.runTaskTimerAsynchronously(0, GLOBAL_TICK_SPEED) {
             val tick = tickCount++
             @OptIn(CallDispatcherOnly::class)
             dispatchOnComponentTick(tick, frameCount)
@@ -206,6 +206,10 @@ abstract class ComponentEndpoint(
     }
 
     companion object {
-        private const val MAX_TICK_SPEED: Long = 1
+        /**
+         * Die globale Tick-geschwindigkeit als Abstand zwischen Minecraft-Ticks.
+         * Kleinster Wert ist 1 (für jeden Minecraft-Tick).
+         */
+        private const val GLOBAL_TICK_SPEED: Long = 1
     }
 }
