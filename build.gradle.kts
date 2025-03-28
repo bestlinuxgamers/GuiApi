@@ -1,10 +1,10 @@
 import org.ajoberstar.reckon.core.Scope
 
 plugins {
-    kotlin("jvm") version "1.9.0"
-    id("org.ajoberstar.reckon") version "0.18.0"
-    id("org.jetbrains.dokka") version "1.8.20"
-    id("maven-publish")
+    kotlin("jvm") version "2.1.20"
+    id("org.ajoberstar.reckon") version "0.19.1"
+    id("org.jetbrains.dokka") version "2.0.0"
+    `maven-publish`
     signing
 }
 
@@ -47,13 +47,21 @@ tasks.test {
 
 //custom tasks
 
-tasks.register<org.gradle.jvm.tasks.Jar>("javadocJar") {
+tasks.register<Jar>("dokkaHtmlJar") {
     group = "documentation"
-    archiveClassifier.set("javadoc")
-    from(tasks.withType<org.jetbrains.dokka.gradle.DokkaTask>()["dokkaHtml"].outputDirectory)
+    dependsOn(tasks.dokkaHtml)
+    from(tasks.dokkaHtml.flatMap { it.outputDirectory })
+    archiveClassifier.set("html-docs")
 }
 
-tasks.register<org.gradle.jvm.tasks.Jar>("sourcesJar") {
+tasks.register<Jar>("javadocJar") {
+    group = "documentation"
+    dependsOn(tasks.dokkaJavadoc)
+    from(tasks.dokkaJavadoc.flatMap { it.outputDirectory })
+    archiveClassifier.set("javadoc")
+}
+
+tasks.register<Jar>("sourcesJar") {
     group = "documentation"
     archiveClassifier.set("sources")
     from(project.sourceSets["main"].allSource)
