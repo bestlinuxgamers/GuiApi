@@ -36,7 +36,7 @@ abstract class ComponentEndpoint(
     tickSpeed: Long = 20,
     private val directOnDemandRender: Boolean = false,
     static: Boolean = false,
-    autoRender: Boolean = false,
+    autoRender: Boolean = true,
     autoRenderSpeed: Int = 1,
     smartRender: Boolean = true,
     background: ItemStack? = null

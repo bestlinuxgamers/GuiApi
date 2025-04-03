@@ -28,7 +28,7 @@ import org.bukkit.inventory.ItemStack
 abstract class GuiComponent(
     val reservedSlots: ReservedSlots,
     val static: Boolean = false, //TODO auto-funktion, welche durch untergeordnete Komponenten static erkennt
-    private val autoRender: Boolean = false,
+    private val autoRender: Boolean = true,
     private val autoRenderSpeed: Int = 1,
     val smartRender: Boolean = true, //TODO evtl. entfernen und immer aktiviert. Evtl. manueller voller rerender
     val renderFallback: ItemStack? = null,
