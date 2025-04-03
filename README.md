@@ -162,9 +162,8 @@ Sobald die Methode so aufgerufen wird, aktualisiert sich die GUI unverzüglich.
 
 #### Auto-Render
 
-Das Feature muss auf globaler Ebene aktiviert werden und ermöglicht die automatische Aktualisierung
-bei einer erkannten Änderung des GUI.
-Die Aktualisierung findet spätestens nach einer auf oberster Komponenten-Ebene eingestellten Zeit statt.
+Das Feature ermöglicht die automatische Aktualisierung bei einer erkannten Änderung des GUI.
+Die Aktualisierung findet spätestens nach einer auf Komponenten-Ebene eingestellten Zeit statt.
 
 ### Render-Einstellungen
 
@@ -180,7 +179,7 @@ Einstellungen keine Aktualisierung vorgenommen.
 
 Dieses Feature erkennt Veränderungen an Komponenten
 und ermöglicht es, nur Komponenten mit Veränderungen neu zu rendern.
-Smart-Rendering muss auf Komponenten-Ebene aktiviert werden.
+Smart-Rendering ist auf Komponenten-Ebene aktiviert.
 
 ## Code-Beispiel
 
