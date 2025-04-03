@@ -1,8 +1,8 @@
 package net.bestlinuxgamers.guiApi.extensions
 
-import net.bestlinuxgamers.guiApi.templates.server.MinecraftInventoryExtension
-import net.bestlinuxgamers.guiApi.templates.server.MinecraftItemExtension
-import net.bestlinuxgamers.guiApi.templates.server.MinecraftServerMockObj
+import net.bestlinuxgamers.guiApi.test.templates.server.MinecraftInventoryExtension
+import net.bestlinuxgamers.guiApi.test.templates.server.MinecraftItemExtension
+import net.bestlinuxgamers.guiApi.test.templates.server.MinecraftServerMockObj
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.inventory.Inventory

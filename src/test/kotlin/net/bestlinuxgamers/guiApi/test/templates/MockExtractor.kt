@@ -1,4 +1,4 @@
-package net.bestlinuxgamers.guiApi.templates
+package net.bestlinuxgamers.guiApi.test.templates
 
 abstract class MockExtractor<T, R>(private val onlyOneSet: Boolean = false) {
 

@@ -4,8 +4,8 @@ import net.bestlinuxgamers.guiApi.component.GuiComponent
 import net.bestlinuxgamers.guiApi.component.RenderOnly
 import net.bestlinuxgamers.guiApi.component.util.ComponentOverlapException
 import net.bestlinuxgamers.guiApi.component.util.ReservedSlots
-import net.bestlinuxgamers.guiApi.templates.server.MinecraftItemExtension
-import net.bestlinuxgamers.guiApi.templates.server.MinecraftServerMockObj
+import net.bestlinuxgamers.guiApi.test.templates.server.MinecraftItemExtension
+import net.bestlinuxgamers.guiApi.test.templates.server.MinecraftServerMockObj
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 import org.junit.jupiter.api.Assertions

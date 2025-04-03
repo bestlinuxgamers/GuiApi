@@ -1,9 +1,9 @@
-package net.bestlinuxgamers.guiApi.templates.server
+package net.bestlinuxgamers.guiApi.test.templates.server
 
 import io.mockk.every
 import io.mockk.mockk
-import net.bestlinuxgamers.guiApi.templates.MockExtension
-import net.bestlinuxgamers.guiApi.templates.MockObject
+import net.bestlinuxgamers.guiApi.test.templates.MockExtension
+import net.bestlinuxgamers.guiApi.test.templates.MockObject
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.Server
