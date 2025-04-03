@@ -45,13 +45,14 @@ interface GuiSurfaceInterface {
     fun updateItems(items: Array<ItemStack?>, lastItems: Array<ItemStack?>?)
 
     /**
-     * Initiiert die Schließung des Surfaces
+     * Initiiert die Schließung des Surfaces.
+     * Hat ein Event zu Folge, welches [onClose] aufruft.
      */
     @SurfaceManagerOnly
     fun close()
 
     /**
-     * Startet alle aktionen, welche nach dem Schließen ausgeführt werden müssen
+     * Startet alle aktionen, welche nach dem Schließen des Surface ausgeführt werden müssen.
      */
     @EventDispatcherOnly
     fun onClose()
