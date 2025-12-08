@@ -153,6 +153,7 @@ class PlayerInventoryDisplay(override val player: Player, disableOtherInventorie
     companion object {
         @Suppress("MemberVisibilityCanBePrivate")
         const val PLAYER_INVENTORY_LINES = 4
+        const val HOTBAR_START_SLOT = 27
         val RESERVED_SLOTS = ReservedSlots(PLAYER_INVENTORY_LINES, INVENTORY_WIDTH)
     }
 }
