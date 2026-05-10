@@ -1,9 +1,9 @@
 import org.ajoberstar.reckon.core.Scope
 
 plugins {
-    kotlin("jvm") version "2.1.20"
-    id("org.ajoberstar.reckon") version "0.19.1"
-    id("org.jetbrains.dokka") version "2.0.0"
+    kotlin("jvm") version "2.3.21"
+    id("org.ajoberstar.reckon") version "2.0.0"
+    id("org.jetbrains.dokka") version "2.2.0"
     `maven-publish`
     signing
 }
@@ -31,7 +31,7 @@ dependencies {
     compileOnly("org.spigotmc:spigot-api:$spigotVersion")
     //tests
     testImplementation(kotlin("test"))
-    testImplementation("io.mockk:mockk:1.13.2")
+    testImplementation("io.mockk:mockk:1.14.9")
     testImplementation(files("./testDependencies/spigot-1.16.5.jar"))
 }
 
