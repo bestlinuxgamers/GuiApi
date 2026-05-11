@@ -230,6 +230,47 @@ abstract class GuiComponent(
     }
 
     /**
+     * Ersetzt eine vorhandene Unterkomponente durch eine neue Komponente an derselben Position.
+     * Wenn die neue Komponente nicht platziert werden kann (z.B. wegen Überlappung),
+     * wird die alte Komponente wiederhergestellt und der Fehler weitergeworfen.
+     * @param oldComponent Die zu ersetzende Komponente
+     * @param newComponent Die neue Komponente
+     * @throws ComponentNotFoundException Wenn die [oldComponent] nicht gefunden wurde
+     */
+    fun replaceComponent(oldComponent: GuiComponent, newComponent: GuiComponent) {
+        val startIndex = getComponentStartIndex(oldComponent) ?: throw ComponentNotFoundException()
+
+        //TODO komplett atomar: Checks vor dem entfernen
+        removeComponent(oldComponent)
+        try {
+            setComponent(newComponent, startIndex)
+        } catch (e: Exception) {
+            setComponent(oldComponent, startIndex)
+            throw e
+        }
+    }
+
+    /**
+     * Gibt den Start-Index einer Unterkomponente in dieser Komponente zurück.
+     * Dies entspricht dem Index, der bei [setComponent] als Ankerpunkt angegeben wurde.
+     * @param component Die gesuchte Unterkomponente
+     * @return Der Start-Index oder null, falls die Komponente nicht gefunden wurde
+     */
+    fun getComponentStartIndex(component: GuiComponent): Int? {
+        val firstSlotEntry =
+            components.withIndex().firstOrNull { it.value?.component == component && it.value?.index == 0 }
+                ?: return null
+
+        val posParent = reservedSlots.getPosOfReservedIndex(firstSlotEntry.index)
+        val posSub = component.reservedSlots.getPosOfReservedIndex(0)
+
+        val startX = posParent.x - posSub.x + 1
+        val startY = posParent.y - posSub.y + 1
+
+        return reservedSlots.getReservedIndexOfPos(Position2D(startX, startY))
+    }
+
+    /**
      * Speichert, dass sich ein Slot verändert hat und beim nächsten smartRender Vorgang erneut gerendert werden soll.
      * Diese Information wird auch an alle übergeordneten Komponenten weitergegeben.
      * @see smartRender

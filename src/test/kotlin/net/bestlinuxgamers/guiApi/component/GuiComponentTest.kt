@@ -603,6 +603,66 @@ internal class GuiComponentTest {
         Assertions.assertArrayEquals(target, instance.renderNextFrame(0))
     }
 
+    @Test
+    fun testGetComponentStartIndex() {
+        val childReserved = ReservedSlots(
+            arrayOf(
+                arrayOf(false, true),
+                arrayOf(true, true)
+            )
+        )
+        val child = AsymmetricTestComponent(childReserved)
+        val parent = ResizableTestComponent(4, 3)
+        val startIndex = 4
+
+        parent.setComponent(child, startIndex)
+
+        Assertions.assertEquals(startIndex, parent.getComponentStartIndex(child))
+    }
+
+    @Test
+    fun testReplaceComponent() {
+        val parent = ResizableTestComponent(3, 3)
+        val child1 = ResizableTestComponent(1, 1)
+        val child2 = ResizableTestComponent(1, 1)
+
+        parent.setComponent(child1, 4)
+        Assertions.assertEquals(child1, parent.getComponentOfIndex(4))
+
+        parent.replaceComponent(child1, child2)
+        Assertions.assertEquals(child2, parent.getComponentOfIndex(4))
+        Assertions.assertFalse(parent.getComponents().contains(child1))
+    }
+
+    @Test
+    fun testReplaceComponentAtomic() {
+        val parent = ResizableTestComponent(3, 3)
+        val child1 = ResizableTestComponent(1, 1)
+        val child2 = ResizableTestComponent(2, 2)
+        val blocker = ResizableTestComponent(1, 1)
+
+        parent.setComponent(child1, 0)
+        parent.setComponent(blocker, 1)
+
+        Assertions.assertThrows(ComponentOverlapException::class.java) {
+            parent.replaceComponent(child1, child2)
+        }
+
+        Assertions.assertEquals(child1, parent.getComponentOfIndex(0))
+        Assertions.assertTrue(parent.getComponents().contains(child1))
+    }
+
+    @Test
+    fun testReplaceComponentNotFound() {
+        val parent = ResizableTestComponent(3, 3)
+        val child1 = ResizableTestComponent(1, 1)
+        val child2 = ResizableTestComponent(1, 1)
+
+        Assertions.assertThrows(ComponentNotFoundException::class.java) {
+            parent.replaceComponent(child1, child2)
+        }
+    }
+
     private class ResizableTestComponent(
         height: Int,
         width: Int,

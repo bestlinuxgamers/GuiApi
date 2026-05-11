@@ -32,5 +32,10 @@ class SlotNotReservedException : ArrayIndexOutOfBoundsException {
     constructor(message: String) : super(message)
 }
 
+/**
+ * Dieser Fehler wird geworfen, wenn eine Komponente in der übergeordneten Komponente nicht gefunden wurde.
+ */
+class ComponentNotFoundException : IllegalArgumentException()
+
 
 //TODO eigene ComponentOverlapException/ArrayIndexOutOfBoundsException mit grafischer Anzeige des Fehlers
