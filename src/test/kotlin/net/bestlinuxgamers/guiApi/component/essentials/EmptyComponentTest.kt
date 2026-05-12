@@ -16,7 +16,7 @@ internal class EmptyComponentTest {
 
     @Test
     fun testEmptyReserved() {
-        val testComp = ResizableTestComponent(2, 2).apply {
+        val testComp = ResizableTestComponent(2, 2, renderFallback = ItemStack(Material.BARRIER)).apply {
             setComponent(ResizableTestComponent(2, 1, renderFallback = ItemStack(Material.STONE)), 0)
             setComponent(EmptyComponent(ReservedSlots(2, 1)), 1)
         }
@@ -29,7 +29,7 @@ internal class EmptyComponentTest {
 
     @Test
     fun testEmptySingle() {
-        val testComp = ResizableTestComponent(2, 2).apply {
+        val testComp = ResizableTestComponent(2, 2, renderFallback = ItemStack(Material.BARRIER)).apply {
             setComponent(ResizableTestComponent(2, 1, renderFallback = ItemStack(Material.STONE)), 0)
             setComponent(EmptyComponent(), 1)
             setComponent(ResizableTestComponent(1, 1, renderFallback = ItemStack(Material.STONE)), 3)
