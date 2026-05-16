@@ -7,6 +7,6 @@ import net.bestlinuxgamers.guiApi.component.util.ReservedSlots
  * Slots im Inventar sind leer.
  * @param reservedSlots Oberflächen-Struktur der Komponente
  */
-class EmptyComponent(reservedSlots: ReservedSlots) : RenderEndpointComponent(null, reservedSlots) {
+class EmptyComponent(reservedSlots: ReservedSlots) : RenderEndpointComponent(null, reservedSlots, isOpaque = true) {
     constructor() : this(ReservedSlots(1, 1))
 }

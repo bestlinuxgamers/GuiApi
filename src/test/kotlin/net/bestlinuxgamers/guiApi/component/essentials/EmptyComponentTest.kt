@@ -54,6 +54,22 @@ internal class EmptyComponentTest {
 
     }
 
+    @Test
+    fun testEmptyComponentBlocksLowerLayers() {
+        val emptyComponent = ResizableTestComponent(1,1, renderFallback = ItemStack(Material.BARRIER)).apply {
+            setComponent(EmptyComponent(ReservedSlots(1, 1)), 0)
+        }
+        val testComp = ResizableTestComponent(1, 2, renderFallback = ItemStack(Material.BEDROCK)).apply {
+            setComponent(ResizableTestComponent(1, 2, renderFallback = ItemStack(Material.STONE)), 0, layer = 0)
+            setComponent(emptyComponent, 0, layer = 1)
+        }
+
+        val template = arrayOf(null, ItemStack(Material.STONE))
+
+        @OptIn(RenderOnly::class)
+        Assertions.assertArrayEquals(template, testComp.renderNextFrame(0))
+    }
+
     private class ResizableTestComponent(
         height: Int,
         width: Int,

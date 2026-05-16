@@ -24,6 +24,9 @@ import org.bukkit.inventory.ItemStack
  * Diese Einstellung ist unabhängig von allen Unterkomponenten.
  * @param tickSpeed In welchem Abstand zwischen globalen Ticks die [onComponentTick] Methode aufgerufen werden soll.
  * Die maximale Schnelligkeit (1) entspricht dem globalen Tick [net.bestlinuxgamers.guiApi.endpoint.ComponentEndpoint.MAX_TICK_SPEED].
+ * @param isOpaque Deaktiviert Transparenz für diese Komponente.
+ * Wenn auf einem Slot dieser Komponente nichts gezeichnet wird (weder durch Unterkomponenten noch durch renderFallback),
+ * werden darunterliegende Z-Ebenen blockiert und der Slot bleibt zwingend leer.
  */
 abstract class GuiComponent(
     val reservedSlots: ReservedSlots,
@@ -34,9 +37,11 @@ abstract class GuiComponent(
     val renderFallback: ItemStack? = null,
     val componentTick: Boolean = true,
     val tickSpeed: Long = 20,
+    val isOpaque: Boolean = false
 ) {
 
-    private val components: Array<ComponentIndexMap?> = Array(reservedSlots.totalReserved) { null }
+    private val components: Array<MutableList<ComponentIndexMap>> =
+        Array(reservedSlots.totalReserved) { mutableListOf() }
     private var clickAction: (event: InventoryClickEvent, clickedComponent: Int) -> Unit = { _, _ -> }
 
     //render vars
@@ -160,15 +165,16 @@ abstract class GuiComponent(
      * Setzt eine [GuiComponent] in die Komponentenliste
      * @param component [GuiComponent], welche hinzugefügt werden soll
      * @param start Index in dieser Komponente, an den Index 0 der hinzuzufügenden Komponente gesetzt werden soll
-     * @param override Ob alle Komponenten, welche sich mit der neuen Komponente überschneiden, entfernt werden sollen
+     * @param override Ob alle Komponenten, welche sich auf derselben Z-Ebene mit der neuen Komponente überschneiden, entfernt werden sollen
+     * @param layer Die Z-Ebene (Layer), auf der die Komponente platziert werden soll. Höhere Werte verdecken niedrigere Werte. Standard ist 0.
      * @throws ArrayIndexOutOfBoundsException Falls die [component] nicht in den Platz dieser [GuiComponent] passt
-     * @throws ComponentOverlapException Falls die [component] eine andere [GuiComponent] überlappen würde
+     * @throws ComponentOverlapException Falls die [component] eine andere [GuiComponent] auf derselben Z-Ebene überlappen würde
      * @throws ComponentAlreadyInUseException Falls die Instanz der Komponente bereits verwendet wird
      * @throws ComponentRekursionException Fall eine Rekursion an Komponenten entstehen würde
      * @throws SlotNotReservedException Wenn die Komponente auf einen Slot gesetzt werden soll, welcher nicht verfügbar ist
      * @see hook
      */
-    fun setComponent(component: GuiComponent, start: Int, override: Boolean = false) {
+    fun setComponent(component: GuiComponent, start: Int, override: Boolean = false, layer: Int = 0) {
         if (component.isLocked()) throw ComponentAlreadyInUseException()
 
         val startPosition = reservedSlots.getPosOfReservedIndex(start)
@@ -185,10 +191,11 @@ abstract class GuiComponent(
                 }
             }
         }
-        componentReservedMapped.forEach {
-            if (components[it] != null) {
+        componentReservedMapped.forEach { mappedSlot ->
+            val existing = components[mappedSlot].find { it.layer == layer }
+            if (existing != null) {
                 if (override) {
-                    getComponentOfIndex(it)?.let { comp -> removeComponent(comp) }
+                    removeComponent(existing.component)
                 } else {
                     throw ComponentOverlapException() //TODO genaue Fehlermeldung
                 }
@@ -197,7 +204,8 @@ abstract class GuiComponent(
 
         component.hook(this)
         componentReservedMapped.forEachIndexed { index, mappedSlot ->
-            components[mappedSlot] = ComponentIndexMap(component, index)
+            components[mappedSlot].add(ComponentIndexMap(component, index, layer))
+            components[mappedSlot].sortBy { it.layer }
             slotChanged(mappedSlot)
         }
         if (componentReservedMapped.isNotEmpty()) {
@@ -213,9 +221,10 @@ abstract class GuiComponent(
         if (!getComponents().contains(component)) return
 
         component.unHook()
-        components.forEachIndexed { index, componentMap ->
-            if (componentMap?.component == component) {
-                components[index] = null
+        components.forEachIndexed { index, componentList ->
+            val toRemove = componentList.filter { it.component == component }
+            if (toRemove.isNotEmpty()) {
+                componentList.removeAll(toRemove)
                 slotChanged(index)
             }
         }
@@ -231,6 +240,7 @@ abstract class GuiComponent(
 
     /**
      * Ersetzt eine vorhandene Unterkomponente durch eine neue Komponente an derselben Position.
+     * Die neue Komponente wird auf exakt derselben Z-Ebene platziert wie die alte.
      * Wenn die neue Komponente nicht platziert werden kann (z.B. wegen Überlappung),
      * wird die alte Komponente wiederhergestellt und der Fehler weitergeworfen.
      * @param oldComponent Die zu ersetzende Komponente
@@ -239,13 +249,14 @@ abstract class GuiComponent(
      */
     fun replaceComponent(oldComponent: GuiComponent, newComponent: GuiComponent) {
         val startIndex = getComponentStartIndex(oldComponent) ?: throw ComponentNotFoundException()
+        val oldLayer = getLayerOfComponent(oldComponent) ?: throw ComponentNotFoundException()
 
         //TODO komplett atomar: Checks vor dem entfernen
         removeComponent(oldComponent)
         try {
-            setComponent(newComponent, startIndex)
+            setComponent(newComponent, startIndex, layer = oldLayer)
         } catch (e: Exception) {
-            setComponent(oldComponent, startIndex)
+            setComponent(oldComponent, startIndex, layer = oldLayer)
             throw e
         }
     }
@@ -258,7 +269,7 @@ abstract class GuiComponent(
      */
     fun getComponentStartIndex(component: GuiComponent): Int? {
         val firstSlotEntry =
-            components.withIndex().firstOrNull { it.value?.component == component && it.value?.index == 0 }
+            components.withIndex().firstOrNull { it.value.any { c -> c.component == component && c.index == 0 } }
                 ?: return null
 
         val posParent = reservedSlots.getPosOfReservedIndex(firstSlotEntry.index)
@@ -268,6 +279,16 @@ abstract class GuiComponent(
         val startY = posParent.y - posSub.y + 1
 
         return reservedSlots.getReservedIndexOfPos(Position2D(startX, startY))
+
+    }
+
+    /**
+     * Gibt die Z-Ebene (Layer) einer Unterkomponente in dieser Komponente zurück.
+     * @param component Die gesuchte Unterkomponente
+     * @return Die Z-Ebene oder null, falls die Komponente nicht gefunden wurde
+     */
+    fun getLayerOfComponent(component: GuiComponent): Int? {
+        return components.flatMap { it }.find { it.component == component }?.layer
     }
 
     /**
@@ -299,9 +320,22 @@ abstract class GuiComponent(
 
     /**
      * @param index Index, dessen Komponente zurückgegeben werden soll
-     * @return Komponente an dem Index [index]
+     * @return Die oberste Komponente an dem Index [index], oder null
      */
-    fun getComponentOfIndex(index: Int): GuiComponent? = components[index]?.component
+    fun getComponentOfIndex(index: Int): GuiComponent? {
+        return components[index].lastOrNull()?.component
+    }
+
+    /**
+     * @param index Index, dessen Komponente zurückgegeben werden soll
+     * @param layer Spezifische Z-Ebene, die durchsucht werden soll.
+     * @return Komponente an dem Index [index] auf der angegebenen Z-Ebene, oder null
+     */
+    fun getComponentOfIndexOnLayer(index: Int, layer: Int): GuiComponent? {
+        return components[index].find { it.layer == layer }?.component
+    }
+
+    //TODO getVisibleComponentOfIndex
 
     //TODO getComponentIndexOfIndex oder getComponentIndexMap
 
@@ -314,9 +348,11 @@ abstract class GuiComponent(
      */
     fun getComponentIndexToLocalIndexMap(component: GuiComponent): Map<Int, Set<Int>> {
         val output = mutableMapOf<Int, MutableSet<Int>>().withDefault { mutableSetOf() }
-        components.forEachIndexed { index, cim ->
-            if (cim != null && cim.component == component) {
-                output.getValueSaved(cim.index).add(index)
+        components.forEachIndexed { index, list ->
+            list.forEach { cim ->
+                if (cim.component == component) {
+                    output.getValueSaved(cim.index).add(index)
+                }
             }
         }
         return output
@@ -331,9 +367,11 @@ abstract class GuiComponent(
      */
     fun getLocalIndexToComponentIndexMap(component: GuiComponent): Map<Int, Int> {
         val output = mutableMapOf<Int, Int>()
-        components.forEachIndexed { index, cim ->
-            if (cim != null && cim.component == component) {
-                output[index] = cim.index
+        components.forEachIndexed { index, list ->
+            list.forEach { cim ->
+                if (cim.component == component) {
+                    output[index] = cim.index
+                }
             }
         }
         return output
@@ -348,19 +386,24 @@ abstract class GuiComponent(
      * auf mehreren Slots dieser Komponente liegt.
      */
     fun getLocalIndexOfComponentIndex(component: GuiComponent, index: Int): Set<Int> {
-        return components.mapIndexed { idx, it ->
-            it?.let { it2 ->
-                if (it2.component == component && it2.index == index) return@mapIndexed idx
-            }
-            null
+        return components.mapIndexed { idx, list ->
+            if (list.any { it.component == component && it.index == index }) idx else null
         }.filterNotNull().toSet()
     }
 
     /**
-     * @return alle untergeordneten Komponenten dieser Komponente
+     * @return alle untergeordneten Komponenten dieser Komponente (über alle Z-Ebenen hinweg)
      */
     fun getComponents(): Set<GuiComponent> {
-        return components.mapNotNull { it?.component }.toSet()
+        return components.flatMap { list -> list.map { it.component } }.toSet()
+    }
+
+    /**
+     * @param layer Spezifische Z-Ebene
+     * @return alle untergeordneten Komponenten dieser Komponente, die exakt auf der angegebenen Z-Ebene liegen
+     */
+    fun getComponentsOfLayer(layer: Int): Set<GuiComponent> {
+        return components.flatMap { list -> list.filter { it.layer == layer }.map { it.component } }.toSet()
     }
 
     //user-render-interaction
@@ -405,6 +448,26 @@ abstract class GuiComponent(
     }
 
     /**
+     * Löst die Z-Achse für einen spezifischen Slot auf und gibt das resultierende Item zurück.
+     */
+    @RenderOnly
+    private fun resolveItemForSlot(slotIndex: Int, renderManager: RenderManager): ItemStack? {
+        val stack = components[slotIndex]
+        if (stack.isEmpty()) return renderFallback
+
+        for (layer in stack.reversed()) {
+            val renderedItem = renderManager.getComponentIndex(layer.component, layer.index)
+            if (renderedItem != null) {
+                return renderedItem
+            }
+            if (layer.component.isOpaque) {
+                return null
+            }
+        }
+        return renderFallback
+    }
+
+    /**
      * Rendert das nächste Bild.
      * @param frame Anzahl des Rendervorgangs
      */
@@ -412,9 +475,8 @@ abstract class GuiComponent(
     internal open fun render(frame: Long): Array<ItemStack?> {
         changedSlots.clear()
         val renderManager = RenderManager(frame)
-        return Array(reservedSlots.totalReserved) {
-            val compIndex = components[it] ?: return@Array renderFallback
-            return@Array renderManager.getComponentIndex(compIndex.component, compIndex.index)
+        return Array(reservedSlots.totalReserved) { slotIndex ->
+            resolveItemForSlot(slotIndex, renderManager)
         }
     }
 
@@ -431,11 +493,8 @@ abstract class GuiComponent(
         val output = getLastRender() ?: return render(frame)
         val renderManager = RenderManager(frame)
 
-        changedSlots.forEach {
-            val component = components[it]
-            output[it] = if (component != null) {
-                renderManager.getComponentIndex(component.component, component.index)
-            } else renderFallback
+        changedSlots.forEach { slotIndex ->
+            output[slotIndex] = resolveItemForSlot(slotIndex, renderManager)
         }
         changedSlots.clear()
         return output
@@ -478,15 +537,15 @@ abstract class GuiComponent(
      */
     @EventDispatcherOnly
     private fun sendClickToChild(event: InventoryClickEvent, clickedSlot: Int) {
-        components[clickedSlot]?.let { it.component.click(event, it.index) }
+        components[clickedSlot].lastOrNull()?.let { it.component.click(event, it.index) }
     }
 
     //util
 
     /**
-     * Klasse, welche eine [GuiComponent] mit einem Index verbindet
+     * Klasse, welche eine [GuiComponent] mit einem Index und einer Z-Ebene verbindet
      */
-    private data class ComponentIndexMap(val component: GuiComponent, val index: Int)
+    private data class ComponentIndexMap(val component: GuiComponent, val index: Int, val layer: Int)
 
     /**
      * Klasse zum Zwischenspeichern von den render-Ergebnissen der Unterkomponenten.

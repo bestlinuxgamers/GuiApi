@@ -235,6 +235,47 @@ internal class GuiComponentTest {
     }
 
     @Test
+    fun testGetComponents() {
+        val instance = ResizableTestComponent(2, 2)
+        val compA = ResizableTestComponent(1, 1)
+        val compB = ResizableTestComponent(1, 1)
+        val compC = ResizableTestComponent(1, 1)
+        val compD = ResizableTestComponent(1, 1)
+
+        instance.apply {
+            setComponent(compA, 0, layer = 0)
+            setComponent(compB, 1, layer = 1)
+
+            setComponent(compC, 2, layer = 0)
+            setComponent(compD, 2, layer = 5)
+        }
+
+        Assertions.assertEquals(setOf(compA, compB, compC, compD), instance.getComponents())
+    }
+
+    @Test
+    fun testGetComponentsOfLayer() {
+        val instance = ResizableTestComponent(4, 4)
+        val compZ0_1 = ResizableTestComponent(1, 1)
+        val compZ0_2 = ResizableTestComponent(1, 1)
+        val compZ1 = ResizableTestComponent(1, 1)
+        val compZ5 = ResizableTestComponent(1, 1)
+
+        instance.apply {
+            setComponent(compZ0_1, 0, layer = 0)
+            setComponent(compZ0_2, 1, layer = 0)
+            setComponent(compZ1, 2, layer = 1)
+            setComponent(compZ5, 3, layer = 5)
+        }
+
+        Assertions.assertEquals(setOf(compZ0_1, compZ0_2), instance.getComponentsOfLayer(0))
+        Assertions.assertEquals(setOf(compZ1), instance.getComponentsOfLayer(1))
+        Assertions.assertEquals(setOf(compZ5), instance.getComponentsOfLayer(5))
+
+        Assertions.assertEquals(emptySet<GuiComponent>(), instance.getComponentsOfLayer(99))
+    }
+
+    @Test
     fun testGetComponentOfIndex() {
         val reserved = ReservedSlots(
             arrayOf(
@@ -258,6 +299,68 @@ internal class GuiComponentTest {
         Assertions.assertEquals(comp1, instance.getComponentOfIndex(1))
         Assertions.assertEquals(comp2, instance.getComponentOfIndex(6))
         Assertions.assertEquals(comp2, instance.getComponentOfIndex(9))
+    }
+
+    @Test
+    fun testGetComponentOfIndexLayered() {
+        val parent = ResizableTestComponent(1, 4, renderFallback = ItemStack(Material.BEDROCK))
+
+        val bottomLayer = ResizableTestComponent(1, 3, renderFallback = ItemStack(Material.STONE))
+
+        val topLayer =
+            object : GuiComponent(ReservedSlots(1, 2), static = false, smartRender = false, renderFallback = null) {
+                override fun beforeRender(frame: Long) {}
+                override fun onComponentTick(tick: Long, frame: Long) {}
+
+                @RenderOnly
+                override fun render(frame: Long): Array<ItemStack?> = arrayOf(ItemStack(Material.DIRT), null)
+            }
+
+        parent.setComponent(bottomLayer, 0, layer = 0)
+        parent.setComponent(topLayer, 0, layer = 1)
+
+        Assertions.assertEquals(topLayer, parent.getComponentOfIndex(0))
+        Assertions.assertEquals(topLayer, parent.getComponentOfIndex(1))
+        Assertions.assertEquals(bottomLayer, parent.getComponentOfIndex(2))
+        Assertions.assertNull(parent.getComponentOfIndex(3))
+    }
+
+    @Test
+    fun testGetComponentOfIndexOnLayer() {
+        val parent = ResizableTestComponent(1, 1)
+        val child0 = ResizableTestComponent(1, 1)
+        val child5 = ResizableTestComponent(1, 1)
+        val childNeg = ResizableTestComponent(1, 1)
+
+        parent.setComponent(child0, 0, layer = 0)
+        parent.setComponent(child5, 0, layer = 5)
+        parent.setComponent(childNeg, 0, layer = -2)
+
+        Assertions.assertEquals(child5, parent.getComponentOfIndex(0))
+
+        Assertions.assertEquals(child0, parent.getComponentOfIndexOnLayer(0, 0))
+        Assertions.assertEquals(child5, parent.getComponentOfIndexOnLayer(0, 5))
+        Assertions.assertEquals(childNeg, parent.getComponentOfIndexOnLayer(0, -2))
+
+        Assertions.assertNull(parent.getComponentOfIndexOnLayer(0, 99))
+    }
+
+    @Test
+    fun testGetLayerOfComponent() {
+        val parent = ResizableTestComponent(3, 3)
+        val child1 = ResizableTestComponent(1, 1)
+        val child2 = ResizableTestComponent(1, 1)
+        val child3 = ResizableTestComponent(1, 1)
+        val notAttachedChild = ResizableTestComponent(1, 1)
+
+        parent.setComponent(child1, 0, layer = 0)
+        parent.setComponent(child2, 1, layer = 7)
+        parent.setComponent(child3, 2, layer = -3)
+
+        Assertions.assertEquals(0, parent.getLayerOfComponent(child1))
+        Assertions.assertEquals(7, parent.getLayerOfComponent(child2))
+        Assertions.assertEquals(-3, parent.getLayerOfComponent(child3))
+        Assertions.assertNull(parent.getLayerOfComponent(notAttachedChild))
     }
 
     @Test
@@ -419,7 +522,7 @@ internal class GuiComponentTest {
     fun testRenderFallbackRender() {
         val outer = ResizableTestComponent(3, 2, renderFallback = ItemStack(Material.BEDROCK))
         val inner = ResizableTestComponent(2, 2, renderFallback = ItemStack(Material.COBBLESTONE))
-        val inner2 = ResizableTestComponent(1, 2, renderFallback = null)
+        val inner2 = ResizableTestComponent(1, 2, renderFallback = null, isOpaque = true)
 
         outer.setComponent(inner, 0)
         inner.setComponent(inner2, 0)
@@ -455,7 +558,8 @@ internal class GuiComponentTest {
             renderFallback = ItemStack(Material.COBBLESTONE)
         )
         inner.renderNextFrame(0)
-        val inner2 = ResizableTestComponent(1, 2, static = false, smartRender = true, renderFallback = null)
+        val inner2 =
+            ResizableTestComponent(1, 2, static = false, smartRender = true, renderFallback = null, isOpaque = true)
         inner2.renderNextFrame(0)
 
         outer.setComponent(inner, 0)
@@ -663,16 +767,235 @@ internal class GuiComponentTest {
         }
     }
 
+    @OptIn(RenderOnly::class)
+    @Test
+    fun testLayerOverlap() {
+        val parent = ResizableTestComponent(2, 2, renderFallback = ItemStack(Material.BEDROCK))
+        val bottomLayer = ResizableTestComponent(1, 2, renderFallback = ItemStack(Material.STONE))
+        val topLayer = ResizableTestComponent(1, 1, renderFallback = ItemStack(Material.DIAMOND))
+
+        parent.setComponent(bottomLayer, 0, layer = 0)
+        parent.setComponent(topLayer, 0, layer = 1)
+
+        val result = parent.render(0)
+        val expected = Array(4) {
+            when (it) {
+                0 -> ItemStack(Material.DIAMOND)
+                1 -> ItemStack(Material.STONE)
+                2, 3 -> ItemStack(Material.BEDROCK)
+                else -> throw IllegalStateException()
+            }
+        }
+        Assertions.assertArrayEquals(expected, result)
+    }
+
+    @OptIn(RenderOnly::class)
+    @Test
+    fun testLayerTransparency() {
+        val parent = ResizableTestComponent(1, 2, renderFallback = ItemStack(Material.BEDROCK))
+        val bottomLayer = ResizableTestComponent(1, 2, renderFallback = ItemStack(Material.STONE))
+        val topLayerTransparent =
+            ResizableTestComponent(1, 2, renderFallback = null, static = false, smartRender = false)
+
+        parent.setComponent(bottomLayer, 0, layer = 0)
+        parent.setComponent(topLayerTransparent, 0, layer = 1)
+
+        val result = parent.render(0)
+        val expected = Array(2) { ItemStack(Material.STONE) }
+        Assertions.assertArrayEquals(expected, result)
+    }
+
+    @OptIn(RenderOnly::class)
+    @Test
+    fun testOpaque() {
+        val parent = ResizableTestComponent(1, 3, renderFallback = ItemStack(Material.BEDROCK))
+        val bottomLayer = ResizableTestComponent(1, 3, renderFallback = ItemStack(Material.STONE))
+
+        val holeComponent = ResizableTestComponent(1, 1, renderFallback = null, static = true, isOpaque = true)
+
+        parent.setComponent(bottomLayer, 0, layer = 0)
+        parent.setComponent(holeComponent, 1, layer = 1)
+
+        val result = parent.render(0)
+        val expected = Array(3) {
+            when (it) {
+                0 -> ItemStack(Material.STONE)
+                1 -> null
+                2 -> ItemStack(Material.STONE)
+                else -> throw IllegalStateException()
+            }
+        }
+        Assertions.assertArrayEquals(expected, result)
+    }
+
+    @OptIn(RenderOnly::class)
+    @Test
+    fun testOpaqueWithSubComponent() {
+        val parent = ResizableTestComponent(1, 4, renderFallback = ItemStack(Material.BEDROCK))
+
+        val opaqueComp = ResizableTestComponent(1, 3, static = true, renderFallback = null, isOpaque = true)
+        val child1Bg = ResizableTestComponent(1, 2, renderFallback = ItemStack(Material.STONE))
+
+        val child2Overlay =
+            object : GuiComponent(ReservedSlots(1, 2), static = false, smartRender = false, renderFallback = null) {
+                override fun beforeRender(frame: Long) {}
+                override fun onComponentTick(tick: Long, frame: Long) {}
+                override fun render(frame: Long): Array<ItemStack?> = arrayOf(ItemStack(Material.DIRT), null)
+            }
+
+        opaqueComp.setComponent(child1Bg, 0, layer = 0)
+        opaqueComp.setComponent(child2Overlay, 0, layer = 1)
+
+        parent.setComponent(opaqueComp, 1)
+
+        val result = parent.render(0)
+        val expected = Array(4) {
+            when (it) {
+                0 -> ItemStack(Material.BEDROCK)
+                1 -> ItemStack(Material.DIRT)
+                2 -> ItemStack(Material.STONE)
+                3 -> null
+                else -> throw IllegalStateException()
+            }
+        }
+        Assertions.assertArrayEquals(expected, result)
+    }
+
+    @OptIn(RenderOnly::class)
+    @Test
+    fun testHolePunching() {
+        val outer = ResizableTestComponent(1, 3, renderFallback = ItemStack(Material.BEDROCK))
+        val inner = ResizableTestComponent(1, 2, renderFallback = ItemStack(Material.COBBLESTONE))
+
+        val holeComp = ResizableTestComponent(1, 1, renderFallback = null, isOpaque = true)
+
+        outer.setComponent(inner, 0)
+        inner.setComponent(holeComp, 1)
+
+        val target = Array(3) {
+            when (it) {
+                0 -> ItemStack(Material.COBBLESTONE)
+                1 -> null
+                2 -> ItemStack(Material.BEDROCK)
+                else -> throw IllegalStateException()
+            }
+        }
+
+        Assertions.assertArrayEquals(target, outer.render(0))
+    }
+
+    @OptIn(RenderOnly::class)
+    @Test
+    fun testSmartRenderTransparency() {
+        val parent = ResizableTestComponent(
+            1,
+            2,
+            static = false,
+            smartRender = true,
+            renderFallback = ItemStack(Material.BEDROCK)
+        )
+        val bottomLayer =
+            ResizableTestComponent(1, 2, static = false, smartRender = true, renderFallback = ItemStack(Material.STONE))
+
+        val dynamicTop = ResizableTestComponent(
+            1,
+            2,
+            static = false,
+            smartRender = true,
+            renderFallback = ItemStack(Material.DIAMOND)
+        )
+
+        parent.setComponent(bottomLayer, 0, layer = 0)
+        parent.setComponent(dynamicTop, 0, layer = 1)
+
+        val expectedFrame0 = arrayOf(ItemStack(Material.DIAMOND), ItemStack(Material.DIAMOND))
+        Assertions.assertArrayEquals(expectedFrame0, parent.renderNextFrame(0))
+
+        val newTransparentTop =
+            object : GuiComponent(ReservedSlots(1, 2), static = false, smartRender = true, renderFallback = null) {
+                override fun beforeRender(frame: Long) {}
+                override fun onComponentTick(tick: Long, frame: Long) {}
+                override fun render(frame: Long): Array<ItemStack?> = arrayOf(ItemStack(Material.DIRT), null)
+            }
+        parent.replaceComponent(dynamicTop, newTransparentTop)
+
+        val expectedFrame1 = arrayOf(ItemStack(Material.DIRT), ItemStack(Material.STONE))
+        Assertions.assertArrayEquals(expectedFrame1, parent.renderNextFrame(1))
+    }
+
+    @OptIn(RenderOnly::class)
+    @Test
+    fun testSmartRenderOpaque() {
+        val parent = ResizableTestComponent(
+            1,
+            2,
+            static = false,
+            smartRender = true,
+            renderFallback = ItemStack(Material.BEDROCK)
+        )
+
+        val dynamicTop = ResizableTestComponent(
+            1,
+            2,
+            static = false,
+            smartRender = true,
+            renderFallback = ItemStack(Material.DIAMOND)
+        )
+
+        parent.setComponent(dynamicTop, 0, layer = 0)
+
+        val expectedFrame0 = arrayOf(ItemStack(Material.DIAMOND), ItemStack(Material.DIAMOND))
+        Assertions.assertArrayEquals(expectedFrame0, parent.renderNextFrame(0))
+
+        val opaqueHoleTop = object : GuiComponent(
+            ReservedSlots(1, 2),
+            static = false,
+            smartRender = true,
+            renderFallback = null,
+            isOpaque = true
+        ) {
+            override fun beforeRender(frame: Long) {}
+            override fun onComponentTick(tick: Long, frame: Long) {}
+            override fun render(frame: Long): Array<ItemStack?> = arrayOf(ItemStack(Material.DIRT), null)
+        }
+        parent.replaceComponent(dynamicTop, opaqueHoleTop)
+
+        val expectedFrame1 = arrayOf(ItemStack(Material.DIRT), null)
+        Assertions.assertArrayEquals(expectedFrame1, parent.renderNextFrame(1))
+    }
+
+    @OptIn(RenderOnly::class)
+    @Test
+    fun testReplaceComponentWithLayer() {
+        val parent = ResizableTestComponent(1, 2, renderFallback = ItemStack(Material.BEDROCK))
+        val bottomLayer = ResizableTestComponent(1, 2, renderFallback = ItemStack(Material.STONE))
+        val oldTop = ResizableTestComponent(1, 1, renderFallback = ItemStack(Material.DIRT))
+        val newTop = ResizableTestComponent(1, 1, renderFallback = ItemStack(Material.DIAMOND))
+
+        parent.setComponent(bottomLayer, 0, layer = 0)
+        parent.setComponent(oldTop, 0, layer = 5)
+
+        Assertions.assertEquals(ItemStack(Material.DIRT), parent.render(0)[0])
+
+        parent.replaceComponent(oldTop, newTop)
+
+        Assertions.assertEquals(ItemStack(Material.DIAMOND), parent.render(1)[0])
+
+        Assertions.assertEquals(5, parent.getLayerOfComponent(newTop))
+    }
+
     private class ResizableTestComponent(
         height: Int,
         width: Int,
         renderFallback: ItemStack? = null,
         static: Boolean = true,
-        smartRender: Boolean = true
+        smartRender: Boolean = true,
+        isOpaque: Boolean = false
     ) : GuiComponent(
         ReservedSlots(height, width),
         static = static,
         smartRender = smartRender,
+        isOpaque = isOpaque,
         renderFallback = renderFallback
     ) {
         override fun beforeRender(frame: Long) {}
