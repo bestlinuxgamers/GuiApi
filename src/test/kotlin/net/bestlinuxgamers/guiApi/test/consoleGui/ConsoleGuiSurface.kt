@@ -35,6 +35,8 @@ class ConsoleGuiSurface(
     private val scheduler: SchedulerRunnableExtractor?,
     private val debug: Boolean = false
 ) : GuiSurfaceInterface {
+    private val reservedSlots = ReservedSlots(height, width)
+
     private var endpoint: ComponentEndpoint? = null
     private var running = false
 
@@ -111,6 +113,9 @@ class ConsoleGuiSurface(
             if (clickSlot == null) {
                 println("Not a valid input!")
                 return
+            } else if (clickSlot < 0 || clickSlot >= reservedSlots.totalReserved) {
+                println("Not a valid position!")
+                return
             }
             val event: InventoryClickEvent = mockk(relaxed = true)
             endpoint?.click(event, clickSlot)
@@ -143,7 +148,7 @@ class ConsoleGuiSurface(
 
     @SurfaceManagerOnly
     override fun generateReserved(): ReservedSlots {
-        return ReservedSlots(height, width)
+        return this.reservedSlots
     }
 
     companion object {
