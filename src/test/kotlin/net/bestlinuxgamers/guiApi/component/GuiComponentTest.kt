@@ -522,14 +522,14 @@ internal class GuiComponentTest {
     fun testRenderFallbackRender() {
         val outer = ResizableTestComponent(3, 2, renderFallback = ItemStack(Material.BEDROCK))
         val inner = ResizableTestComponent(2, 2, renderFallback = ItemStack(Material.COBBLESTONE))
-        val inner2 = ResizableTestComponent(1, 2, renderFallback = null, isOpaque = true)
+        val inner2 = ResizableTestComponent(1, 2, renderFallback = GuiComponent.HOLE)
 
         outer.setComponent(inner, 0)
         inner.setComponent(inner2, 0)
 
         val target = Array(6) {
             when (it) {
-                in 0..1 -> null
+                in 0..1 -> GuiComponent.HOLE
                 in 2..3 -> ItemStack(Material.COBBLESTONE)
                 in 4..5 -> ItemStack(Material.BEDROCK)
                 else -> throw IllegalStateException()
@@ -559,7 +559,7 @@ internal class GuiComponentTest {
         )
         inner.renderNextFrame(0)
         val inner2 =
-            ResizableTestComponent(1, 2, static = false, smartRender = true, renderFallback = null, isOpaque = true)
+            ResizableTestComponent(1, 2, static = false, smartRender = true, renderFallback = GuiComponent.HOLE)
         inner2.renderNextFrame(0)
 
         outer.setComponent(inner, 0)
@@ -567,7 +567,7 @@ internal class GuiComponentTest {
 
         val target = Array(6) {
             when (it) {
-                in 0..1 -> null
+                in 0..1 -> GuiComponent.HOLE
                 in 2..3 -> ItemStack(Material.COBBLESTONE)
                 in 4..5 -> ItemStack(Material.BEDROCK)
                 else -> throw IllegalStateException()
@@ -811,7 +811,7 @@ internal class GuiComponentTest {
         val parent = ResizableTestComponent(1, 3, renderFallback = ItemStack(Material.BEDROCK))
         val bottomLayer = ResizableTestComponent(1, 3, renderFallback = ItemStack(Material.STONE))
 
-        val holeComponent = ResizableTestComponent(1, 1, renderFallback = null, static = true, isOpaque = true)
+        val holeComponent = ResizableTestComponent(1, 1, renderFallback = GuiComponent.HOLE, static = true)
 
         parent.setComponent(bottomLayer, 0, layer = 0)
         parent.setComponent(holeComponent, 1, layer = 1)
@@ -820,7 +820,7 @@ internal class GuiComponentTest {
         val expected = Array(3) {
             when (it) {
                 0 -> ItemStack(Material.STONE)
-                1 -> null
+                1 -> GuiComponent.HOLE
                 2 -> ItemStack(Material.STONE)
                 else -> throw IllegalStateException()
             }
@@ -833,7 +833,7 @@ internal class GuiComponentTest {
     fun testOpaqueWithSubComponent() {
         val parent = ResizableTestComponent(1, 4, renderFallback = ItemStack(Material.BEDROCK))
 
-        val opaqueComp = ResizableTestComponent(1, 3, static = true, renderFallback = null, isOpaque = true)
+        val opaqueComp = ResizableTestComponent(1, 3, static = true, renderFallback = GuiComponent.HOLE)
         val child1Bg = ResizableTestComponent(1, 2, renderFallback = ItemStack(Material.STONE))
 
         val child2Overlay =
@@ -854,7 +854,7 @@ internal class GuiComponentTest {
                 0 -> ItemStack(Material.BEDROCK)
                 1 -> ItemStack(Material.DIRT)
                 2 -> ItemStack(Material.STONE)
-                3 -> null
+                3 -> GuiComponent.HOLE
                 else -> throw IllegalStateException()
             }
         }
@@ -867,7 +867,7 @@ internal class GuiComponentTest {
         val outer = ResizableTestComponent(1, 3, renderFallback = ItemStack(Material.BEDROCK))
         val inner = ResizableTestComponent(1, 2, renderFallback = ItemStack(Material.COBBLESTONE))
 
-        val holeComp = ResizableTestComponent(1, 1, renderFallback = null, isOpaque = true)
+        val holeComp = ResizableTestComponent(1, 1, renderFallback = GuiComponent.HOLE)
 
         outer.setComponent(inner, 0)
         inner.setComponent(holeComp, 1)
@@ -875,7 +875,7 @@ internal class GuiComponentTest {
         val target = Array(3) {
             when (it) {
                 0 -> ItemStack(Material.COBBLESTONE)
-                1 -> null
+                1 -> GuiComponent.HOLE
                 2 -> ItemStack(Material.BEDROCK)
                 else -> throw IllegalStateException()
             }
@@ -951,16 +951,15 @@ internal class GuiComponentTest {
             ReservedSlots(1, 2),
             static = false,
             smartRender = true,
-            renderFallback = null,
-            isOpaque = true
+            renderFallback = null
         ) {
             override fun beforeRender(frame: Long) {}
             override fun onComponentTick(tick: Long, frame: Long) {}
-            override fun render(frame: Long): Array<ItemStack?> = arrayOf(ItemStack(Material.DIRT), null)
+            override fun render(frame: Long): Array<ItemStack?> = arrayOf(ItemStack(Material.DIRT), HOLE)
         }
         parent.replaceComponent(dynamicTop, opaqueHoleTop)
 
-        val expectedFrame1 = arrayOf(ItemStack(Material.DIRT), null)
+        val expectedFrame1 = arrayOf(ItemStack(Material.DIRT), GuiComponent.HOLE)
         Assertions.assertArrayEquals(expectedFrame1, parent.renderNextFrame(1))
     }
 
@@ -989,13 +988,11 @@ internal class GuiComponentTest {
         width: Int,
         renderFallback: ItemStack? = null,
         static: Boolean = true,
-        smartRender: Boolean = true,
-        isOpaque: Boolean = false
+        smartRender: Boolean = true
     ) : GuiComponent(
         ReservedSlots(height, width),
         static = static,
         smartRender = smartRender,
-        isOpaque = isOpaque,
         renderFallback = renderFallback
     ) {
         override fun beforeRender(frame: Long) {}

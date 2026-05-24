@@ -10,7 +10,7 @@ import org.bukkit.inventory.ItemStack
  * Repräsentiert eine Komponente eines Minecraft Guis.
  *
  * Die Komponente wird im Konstruktor der Unterklasse erstellt.
- * Anschließend können die Komponenten gerendert [renderNextFrame] werden.
+ * Anschließend können die Komponenten gerendert werden ([renderNextFrame]).
  * @param reservedSlots Fläche der Komponente
  * @param static Ob die Komponente und alle Unterkomponenten nur einmal gerendert werden sollen.
  * Dies wird empfohlen, wenn die Komponente keine Animationen/Veränderungen enthält.
@@ -23,10 +23,7 @@ import org.bukkit.inventory.ItemStack
  * @param componentTick Ob die [onComponentTick] Methode dieser Komponente im Intervall vom [tickSpeed] aufgerufen werden soll.
  * Diese Einstellung ist unabhängig von allen Unterkomponenten.
  * @param tickSpeed In welchem Abstand zwischen globalen Ticks die [onComponentTick] Methode aufgerufen werden soll.
- * Die maximale Schnelligkeit (1) entspricht dem globalen Tick [net.bestlinuxgamers.guiApi.endpoint.ComponentEndpoint.MAX_TICK_SPEED].
- * @param isOpaque Deaktiviert Transparenz für diese Komponente.
- * Wenn auf einem Slot dieser Komponente nichts gezeichnet wird (weder durch Unterkomponenten noch durch renderFallback),
- * werden darunterliegende Z-Ebenen blockiert und der Slot bleibt zwingend leer.
+ * Die maximale Schnelligkeit (1) entspricht dem globalen Tick [net.bestlinuxgamers.guiApi.endpoint.ComponentEndpoint.GLOBAL_TICK_SPEED].
  */
 abstract class GuiComponent(
     val reservedSlots: ReservedSlots,
@@ -37,7 +34,6 @@ abstract class GuiComponent(
     val renderFallback: ItemStack? = null,
     val componentTick: Boolean = true,
     val tickSpeed: Long = 20,
-    val isOpaque: Boolean = false
 ) {
 
     private val components: Array<MutableList<ComponentIndexMap>> =
@@ -460,9 +456,6 @@ abstract class GuiComponent(
             if (renderedItem != null) {
                 return renderedItem
             }
-            if (layer.component.isOpaque) {
-                return null
-            }
         }
         return renderFallback
     }
@@ -541,6 +534,13 @@ abstract class GuiComponent(
     }
 
     //util
+
+    companion object {
+        /**
+         * Ein spezielles Token, um ein hartes Loch durch alle Z-Ebenen hindurch bis zum eigentlichen Minecraft-Inventar zu stanzen.
+         */
+        val HOLE = ItemStack(org.bukkit.Material.AIR)
+    }
 
     /**
      * Klasse, welche eine [GuiComponent] mit einem Index und einer Z-Ebene verbindet

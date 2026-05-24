@@ -6,6 +6,7 @@ import net.bestlinuxgamers.guiApi.component.RenderOnly
 import net.bestlinuxgamers.guiApi.endpoint.surface.GuiSurfaceInterface
 import net.bestlinuxgamers.guiApi.endpoint.surface.SurfaceManagerOnly
 import net.bestlinuxgamers.guiApi.event.EventDispatcherOnly
+import net.bestlinuxgamers.guiApi.extensions.replace
 import net.bestlinuxgamers.guiApi.provider.SchedulerProvider
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemStack
@@ -54,6 +55,7 @@ abstract class ComponentEndpoint(
     private var scheduler: BukkitTask? = null
     private var tickCount: Long = 0
     private var requestedRenderIn: Int? = null
+    private var lastMappedRender: Array<ItemStack?>? = null
 
     init {
         super.lock()
@@ -67,10 +69,9 @@ abstract class ComponentEndpoint(
         if (surface.isOpened()) return
         if (tickCount <= 0) {
             startTickScheduler()
-            @OptIn(RenderOnly::class)
-            surface.open(renderNext())
+            applyMappedRender(@OptIn(RenderOnly::class) renderNext()) { mapped, _ -> surface.open(mapped) }
         } else {
-            surface.open(getLastRender()!!)
+            applyMappedRender(getLastRender()!!) { mapped, _ -> surface.open(mapped) }
             startTickScheduler()
         }
     }
@@ -169,9 +170,31 @@ abstract class ComponentEndpoint(
         requestedRenderIn = null
 
         if (!smartRender && rendered.contentEquals(lastRender)) return
-        surface.updateItems(rendered, lastRender)
+
+        applyMappedRender(rendered) { mapped, oldMapped ->
+            surface.updateItems(mapped, oldMapped)
+        }
         //TODO was, wenn render länger, als tickSpeed benötigt //TODO Items sync updaten
     }
+
+
+    /**
+     * Übersetzt das rohe Array, vergleicht es mit dem Cache und führt die übergebene Aktion aus,
+     * falls sich das Bild optisch verändert hat.
+     */
+    private inline fun applyMappedRender(
+        rendered: Array<ItemStack?>,
+        updateAction: (mapped: Array<ItemStack?>, oldMapped: Array<ItemStack?>?) -> Unit
+    ) {
+        val oldMapped = lastMappedRender
+        val mapped = rendered.replace(HOLE, null)
+
+        if (oldMapped != null && mapped.contentEquals(oldMapped)) return
+
+        lastMappedRender = mapped
+        updateAction(mapped, oldMapped)
+    }
+
 
     //scheduler
 

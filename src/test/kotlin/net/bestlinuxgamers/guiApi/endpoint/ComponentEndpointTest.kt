@@ -1,8 +1,8 @@
 package net.bestlinuxgamers.guiApi.endpoint
 
-import io.mockk.every
-import io.mockk.mockk
+import io.mockk.*
 import net.bestlinuxgamers.guiApi.component.GuiComponent
+import net.bestlinuxgamers.guiApi.component.essentials.EmptyComponent
 import net.bestlinuxgamers.guiApi.component.essentials.ItemComponent
 import net.bestlinuxgamers.guiApi.component.util.ReservedSlots
 import net.bestlinuxgamers.guiApi.endpoint.surface.GuiSurfaceInterface
@@ -435,6 +435,151 @@ internal class ComponentEndpointTest {
 
         schedulerExtractor.getDifferent()
         Assertions.assertEquals(2, lastTick)
+    }
+
+    @Test
+    fun testHoleToNothing() {
+        val mockSurface: GuiSurfaceInterface = mockk(relaxed = true)
+
+        @OptIn(SurfaceManagerOnly::class)
+        every { mockSurface.generateReserved() } returns ReservedSlots(1, 2)
+        val renderResults = RenderResultExtractor(mockSurface)
+
+        val mockScheduler: SchedulerProvider = mockk(relaxed = true)
+        val schedulerExtractor = SchedulerRunnableExtractor(mockScheduler)
+        schedulerExtractor.addHook { it.run() }
+
+        val ep = object : ComponentEndpoint(
+            mockSurface,
+            mockScheduler,
+            componentTick = true,
+            tickSpeed = 1,
+            autoRender = true,
+            autoRenderSpeed = 1,
+            smartRender = true,
+            background = ItemStack(Material.BEDROCK),
+        ) {
+            override fun beforeRender(frame: Long) {}
+            override fun onComponentTick(tick: Long, frame: Long) {}
+        }
+
+        ep.setComponent(ItemComponent(ItemStack(Material.BARRIER), ReservedSlots(1, 2)), 0)
+        val c2 = ResizableTestComponent(1, 1, renderFallback = ItemStack(Material.STONE), static = false)
+        c2.setComponent(EmptyComponent(), 0)
+        ep.setComponent(c2, 0, layer = 1)
+
+        ep.open()
+        Assertions.assertArrayEquals(arrayOf(null, ItemStack(Material.BARRIER)), renderResults.getDifferent())
+
+        c2.setComponent(ItemComponent(ItemStack(Material.STICK)), 0, override = true)
+
+        val scheduler = schedulerExtractor.getDifferent()!!
+        scheduler.run()
+
+        Assertions.assertArrayEquals(
+            arrayOf(ItemStack(Material.STICK), ItemStack(Material.BARRIER)),
+            renderResults.getDifferent()
+        )
+
+        c2.setComponent(EmptyComponent(), 0, override = true)
+        scheduler.run()
+
+        Assertions.assertArrayEquals(arrayOf(null, ItemStack(Material.BARRIER)), renderResults.getDifferent())
+    }
+
+    @Test
+    fun testEndpointHoleMappingAndCaching() {
+        val mockSurface: GuiSurfaceInterface = mockk(relaxed = true)
+
+        @OptIn(SurfaceManagerOnly::class)
+        every { mockSurface.generateReserved() } returns ReservedSlots(1, 1)
+
+        val mockScheduler: SchedulerProvider = mockk(relaxed = true)
+        val schedulerExtractor = SchedulerRunnableExtractor(mockScheduler)
+        schedulerExtractor.addHook { it.run() }
+
+        val ep = object : ComponentEndpoint(
+            mockSurface,
+            mockScheduler,
+            componentTick = true,
+            tickSpeed = 1,
+            autoRender = true,
+            autoRenderSpeed = 1,
+            smartRender = true,
+            background = ItemStack(Material.BEDROCK),
+        ) {
+            override fun beforeRender(frame: Long) {}
+            override fun onComponentTick(tick: Long, frame: Long) {}
+        }
+
+        ep.open()
+
+        val openSlot = slot<Array<ItemStack?>>()
+        @OptIn(SurfaceManagerOnly::class)
+        verify(exactly = 1) {
+            mockSurface.open(capture(openSlot))
+        }
+        Assertions.assertArrayEquals(arrayOf(ItemStack(Material.BEDROCK)), openSlot.captured)
+
+        val holeComp = ResizableTestComponent(1, 1, renderFallback = GuiComponent.HOLE)
+        ep.setComponent(holeComp, 0)
+
+        val scheduler = schedulerExtractor.getDifferent()!!
+        scheduler.run()
+
+        val updateSlot1 = slot<Array<ItemStack?>>()
+        val lastItemsSlot1 = slot<Array<ItemStack?>?>()
+        @OptIn(SurfaceManagerOnly::class)
+        verify(exactly = 1) {
+            mockSurface.updateItems(capture(updateSlot1), captureNullable(lastItemsSlot1))
+        }
+        Assertions.assertArrayEquals(arrayOfNulls<ItemStack>(1), updateSlot1.captured)
+        Assertions.assertArrayEquals(arrayOf(ItemStack(Material.BEDROCK)), lastItemsSlot1.captured)
+
+        val hiddenLayer = ResizableTestComponent(1, 1, renderFallback = ItemStack(Material.STONE))
+        ep.setComponent(hiddenLayer, 0, layer = 0, override = true)
+        ep.setComponent(holeComp, 0, layer = 1)
+
+        scheduler.run()
+
+        @OptIn(SurfaceManagerOnly::class)
+        verify(exactly = 1) {
+            mockSurface.updateItems(any(), any())
+        }
+
+        ep.removeComponent(holeComp)
+
+        clearMocks(mockSurface, answers = false)
+        val updateSlot2 = slot<Array<ItemStack?>>()
+        val lastItemsSlot2 = slot<Array<ItemStack?>?>()
+
+        scheduler.run()
+
+        @OptIn(SurfaceManagerOnly::class)
+        verify(exactly = 1) {
+            mockSurface.updateItems(capture(updateSlot2), captureNullable(lastItemsSlot2))
+        }
+        Assertions.assertArrayEquals(arrayOf(ItemStack(Material.STONE)), updateSlot2.captured)
+        Assertions.assertArrayEquals(arrayOfNulls<ItemStack>(1), lastItemsSlot2.captured)
+
+        Assertions.assertFalse(lastItemsSlot2.captured?.contains(GuiComponent.HOLE) == true)
+    }
+
+    //todo in extra Klasse und deduplizieren
+    private class ResizableTestComponent(
+        height: Int,
+        width: Int,
+        renderFallback: ItemStack? = null,
+        static: Boolean = false,
+        smartRender: Boolean = true
+    ) : GuiComponent(
+        ReservedSlots(height, width),
+        static = static,
+        smartRender = smartRender,
+        renderFallback = renderFallback
+    ) {
+        override fun beforeRender(frame: Long) {}
+        override fun onComponentTick(tick: Long, frame: Long) {}
     }
 
     companion object {

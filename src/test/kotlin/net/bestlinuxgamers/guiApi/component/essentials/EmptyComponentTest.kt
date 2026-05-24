@@ -21,7 +21,8 @@ internal class EmptyComponentTest {
             setComponent(EmptyComponent(ReservedSlots(2, 1)), 1)
         }
 
-        val template = arrayOf(ItemStack(Material.STONE), null, ItemStack(Material.STONE), null)
+        val template =
+            arrayOf(ItemStack(Material.STONE), GuiComponent.HOLE, ItemStack(Material.STONE), GuiComponent.HOLE)
 
         @OptIn(RenderOnly::class)
         Assertions.assertArrayEquals(template, testComp.renderNextFrame(0))
@@ -35,7 +36,8 @@ internal class EmptyComponentTest {
             setComponent(ResizableTestComponent(1, 1, renderFallback = ItemStack(Material.STONE)), 3)
         }
 
-        val template = arrayOf(ItemStack(Material.STONE), null, ItemStack(Material.STONE), ItemStack(Material.STONE))
+        val template =
+            arrayOf(ItemStack(Material.STONE), GuiComponent.HOLE, ItemStack(Material.STONE), ItemStack(Material.STONE))
 
         @OptIn(RenderOnly::class)
         Assertions.assertArrayEquals(template, testComp.renderNextFrame(0))
@@ -56,7 +58,7 @@ internal class EmptyComponentTest {
 
     @Test
     fun testEmptyComponentBlocksLowerLayers() {
-        val emptyComponent = ResizableTestComponent(1,1, renderFallback = ItemStack(Material.BARRIER)).apply {
+        val emptyComponent = ResizableTestComponent(1, 1, renderFallback = ItemStack(Material.BARRIER)).apply {
             setComponent(EmptyComponent(ReservedSlots(1, 1)), 0)
         }
         val testComp = ResizableTestComponent(1, 2, renderFallback = ItemStack(Material.BEDROCK)).apply {
@@ -64,7 +66,7 @@ internal class EmptyComponentTest {
             setComponent(emptyComponent, 0, layer = 1)
         }
 
-        val template = arrayOf(null, ItemStack(Material.STONE))
+        val template = arrayOf(GuiComponent.HOLE, ItemStack(Material.STONE))
 
         @OptIn(RenderOnly::class)
         Assertions.assertArrayEquals(template, testComp.renderNextFrame(0))

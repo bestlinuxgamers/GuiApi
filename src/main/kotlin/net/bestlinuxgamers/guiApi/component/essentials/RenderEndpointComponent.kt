@@ -11,18 +11,13 @@ import org.bukkit.inventory.ItemStack
  * @param renderItem Item, welches die Komponente bei einem Rendervorgang zurückgeben soll
  * @param reservedSlots Struktur der Komponente
  */
-open class RenderEndpointComponent(
-    private val renderItem: ItemStack?,
-    reservedSlots: ReservedSlots,
-    isOpaque: Boolean = false
-) :
+open class RenderEndpointComponent(private val renderItem: ItemStack?, reservedSlots: ReservedSlots) :
     GuiComponent(
         reservedSlots,
         static = true,
         smartRender = false,
         renderFallback = renderItem,
-        componentTick = false,
-        isOpaque = isOpaque
+        componentTick = false
     ) {
 
     override fun beforeRender(frame: Long) {}
