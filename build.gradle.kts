@@ -4,6 +4,7 @@ plugins {
     kotlin("jvm") version "2.3.21"
     id("org.ajoberstar.reckon") version "2.0.0"
     id("org.jetbrains.dokka") version "2.2.0"
+    id("org.jetbrains.dokka-javadoc") version "2.2.0"
     `maven-publish`
     signing
 }
@@ -48,20 +49,24 @@ tasks.test {
 //custom tasks
 
 tasks.register<Jar>("dokkaHtmlJar") {
+    description = "Creates a jar archive containing the generated Dokka HTML documentation."
     group = "documentation"
-    dependsOn(tasks.dokkaHtml)
-    from(tasks.dokkaHtml.flatMap { it.outputDirectory })
+
+    dependsOn(tasks.dokkaGeneratePublicationHtml)
+    from(layout.buildDirectory.dir("dokka/html"))
     archiveClassifier.set("html-docs")
 }
 
 tasks.register<Jar>("javadocJar") {
-    group = "documentation"
-    dependsOn(tasks.dokkaJavadoc)
-    from(tasks.dokkaJavadoc.flatMap { it.outputDirectory })
+    description = "Creates a jar archive containing the generated Dokka Javadoc documentation."
+
+    dependsOn(tasks.dokkaGeneratePublicationJavadoc)
+    from(layout.buildDirectory.dir("dokka/javadoc"))
     archiveClassifier.set("javadoc")
 }
 
 tasks.register<Jar>("sourcesJar") {
+    description = "Creates a jar archive containing the projects source code."
     group = "documentation"
     archiveClassifier.set("sources")
     from(project.sourceSets["main"].allSource)
