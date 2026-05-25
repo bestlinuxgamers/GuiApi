@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 8 (for compilation)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '8'
+          distribution: 'temurin'
+
+      - name: Set up JDK 17 (for Gradle)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4.3.1
+        with:
+          gradle-version: wrapper
+
+      - name: Download Test Dependencies
+        run: |
+          mkdir -p testDependencies
+          wget -q https://cdn.getbukkit.org/spigot/spigot-1.16.5.jar -O testDependencies/spigot-1.16.5.jar
+
+      - name: Run Tests
+        run: ./gradlew test --no-daemon
